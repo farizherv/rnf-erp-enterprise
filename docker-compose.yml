@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: rnf-postgres
+    environment:
+      POSTGRES_DB: rnf_erp
+      POSTGRES_USER: rnf_admin
+      POSTGRES_PASSWORD: rnf_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - rnf-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  rnf-pgdata:

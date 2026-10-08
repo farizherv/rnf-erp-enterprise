@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body, #root {
+    @apply h-full w-full m-0 p-0 overflow-hidden font-sans text-slate-800 bg-slate-50;
+  }
+}
+
+@media print {
+  html, body, #root {
+    height: auto !important;
+    width: auto !important;
+    overflow: visible !important;
+    background-color: white !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  @page {
+    margin: 0;
+    size: A4 portrait;
+  }
+}

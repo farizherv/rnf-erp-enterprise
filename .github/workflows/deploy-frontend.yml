@@ -44,7 +44,7 @@ jobs:
           protocol: ftps
           security: loose
           local-dir: ./frontend/dist/
-          server-dir: ./erp/
+          server-dir: ./
           exclude: |
             **/.git*
             **/.git*/**

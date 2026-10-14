@@ -25,6 +25,7 @@ import { EnterpriseReportViewer } from '../features/gl/components/reports/Enterp
 import { MasterItemView } from '../features/inventory/components/MasterItemView';
 import { UnifiedInventoryView } from '../features/inventory/components/UnifiedInventoryView';
 import { StockReportView } from '../features/inventory/components/StockReportView';
+import { StockCardReportView } from '../features/inventory/components/StockCardReportView';
 import { IncomingStockReportView } from '../features/inventory/components/IncomingStockReportView';
 import { OutgoingStockReportView } from '../features/inventory/components/OutgoingStockReportView';
 import { Home, X, Menu, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -283,6 +284,19 @@ export const DashboardPage: React.FC = () => {
                   <div className="p-0 h-full bg-slate-50 flex flex-col overflow-hidden">
                     <StockReportView 
                       onClose={() => closeTab(null, tab.id)} 
+                      onOpenStockCardTab={(sku) => handleMenuClick(`Kartu Stok : ${sku}`)}
+                      onNavigateToMutasi={(jobReg) => {
+                        setMutasiInitialJobReg(jobReg);
+                        handleMenuClick('Mutasi Stok');
+                      }}
+                    />
+                  </div>
+                )}
+                {tab.id.startsWith('Kartu Stok : ') && (
+                  <div className="p-0 h-full bg-slate-50 flex flex-col overflow-hidden">
+                    <StockCardReportView 
+                      sku={tab.id.replace('Kartu Stok : ', '')} 
+                      onClose={() => closeTab(null, tab.id)}
                       onNavigateToMutasi={(jobReg) => {
                         setMutasiInitialJobReg(jobReg);
                         handleMenuClick('Mutasi Stok');

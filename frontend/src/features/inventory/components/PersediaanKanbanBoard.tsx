@@ -320,10 +320,10 @@ export const PersediaanKanbanBoard: React.FC<PersediaanKanbanBoardProps> = ({ on
                   Riwayat Barang Masuk ({searchResults.matchedIncoming.length} transaksi)
                 </h3>
                 <button 
-                  onClick={() => { if (onOpenTab) onOpenTab('Laporan Barang Masuk'); }}
+                  onClick={() => { if (onOpenTab) onOpenTab('Mutasi Stok'); }}
                   className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 hover:underline"
                 >
-                  Buka Laporan Masuk <ExternalLink className="w-3 h-3" />
+                  Buka Mutasi Stok <ExternalLink className="w-3 h-3" />
                 </button>
               </div>
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
@@ -371,10 +371,10 @@ export const PersediaanKanbanBoard: React.FC<PersediaanKanbanBoardProps> = ({ on
                   Riwayat Barang Keluar ({searchResults.matchedOutgoing.length} transaksi)
                 </h3>
                 <button 
-                  onClick={() => { if (onOpenTab) onOpenTab('Laporan Barang Keluar'); }}
+                  onClick={() => { if (onOpenTab) onOpenTab('Mutasi Stok'); }}
                   className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 hover:underline"
                 >
-                  Buka Laporan Keluar <ExternalLink className="w-3 h-3" />
+                  Buka Mutasi Stok <ExternalLink className="w-3 h-3" />
                 </button>
               </div>
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
@@ -483,7 +483,7 @@ export const PersediaanKanbanBoard: React.FC<PersediaanKanbanBoardProps> = ({ on
 
       {/* 2. AKSI CEPAT - PENJUALAN (SALES & PRODUCTION INVENTORY) */}
       <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-[-1rem] mt-4">Aksi Cepat (Pintasan) Penjualan</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 max-w-3xl gap-3 mt-4">
         
         <button 
           onClick={() => {
@@ -524,34 +524,6 @@ export const PersediaanKanbanBoard: React.FC<PersediaanKanbanBoardProps> = ({ on
           </div>
           <div className="text-center w-full">
             <span className="block font-bold text-slate-700 group-hover:text-slate-800 text-[11px] lg:text-xs truncate">Laporan Stok</span>
-          </div>
-        </button>
-
-        <button 
-          onClick={() => {
-            if (onOpenTab) onOpenTab('Laporan Barang Masuk');
-          }}
-          className="flex flex-col items-center justify-center gap-2 p-3 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:shadow-md transition-all group"
-        >
-          <div className="bg-emerald-50 p-2.5 rounded-xl text-emerald-600 group-hover:bg-emerald-100 transition-colors group-hover:-translate-y-1 transform duration-200">
-            <FileText className="w-5 h-5" />
-          </div>
-          <div className="text-center w-full">
-            <span className="block font-bold text-slate-700 group-hover:text-emerald-600 text-[11px] lg:text-xs truncate">Lap. Masuk</span>
-          </div>
-        </button>
-
-        <button 
-          onClick={() => {
-            if (onOpenTab) onOpenTab('Laporan Barang Keluar');
-          }}
-          className="flex flex-col items-center justify-center gap-2 p-3 bg-white border border-slate-200 rounded-xl hover:border-rose-400 hover:shadow-md transition-all group"
-        >
-          <div className="bg-rose-50 p-2.5 rounded-xl text-rose-600 group-hover:bg-rose-100 transition-colors group-hover:-translate-y-1 transform duration-200">
-            <FileText className="w-5 h-5" />
-          </div>
-          <div className="text-center w-full">
-            <span className="block font-bold text-slate-700 group-hover:text-rose-600 text-[11px] lg:text-xs truncate">Lap. Keluar</span>
           </div>
         </button>
 
@@ -645,7 +617,7 @@ export const PersediaanKanbanBoard: React.FC<PersediaanKanbanBoardProps> = ({ on
               title="Tanggal Akhir"
             />
             <button 
-              onClick={() => { if (onOpenTab) onOpenTab('Laporan Barang Masuk'); }}
+              onClick={() => { if (onOpenTab) onOpenTab('Mutasi Stok'); }}
               className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-semibold ml-2"
             >
               Lihat Semua <ArrowUpRight className="w-3 h-3" />

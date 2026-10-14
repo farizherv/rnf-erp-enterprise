@@ -50,13 +50,14 @@ export const DashboardPage: React.FC = () => {
 
   // --- Handlers ---
   const handleMenuClick = (menuName: string) => {
-    const existingTab = openTabs.find(t => t.id === menuName);
+    const targetTab = (menuName === 'Laporan Barang Masuk' || menuName === 'Laporan Barang Keluar') ? 'Mutasi Stok' : menuName;
+    const existingTab = openTabs.find(t => t.id === targetTab);
     if (!existingTab) {
-      setTabs([...openTabs, { id: menuName, label: menuName }]);
+      setTabs([...openTabs, { id: targetTab, label: targetTab }]);
       // Auto-scroll to right when adding a new tab
       setTimeout(() => scrollRight(9999), 100);
     }
-    setActiveTabId(menuName);
+    setActiveTabId(targetTab);
   };
 
   const closeTab = (e: React.MouseEvent | null, tabId: string) => {
@@ -269,14 +270,9 @@ export const DashboardPage: React.FC = () => {
                     <UnifiedInventoryView onClose={() => closeTab(null, tab.id)} />
                   </div>
                 )}
-                {tab.id === 'Laporan Barang Masuk' && (
+                {(tab.id === 'Laporan Barang Masuk' || tab.id === 'Laporan Barang Keluar') && (
                   <div className="p-0 h-full bg-slate-50 flex flex-col overflow-hidden">
-                    <IncomingStockReportView onClose={() => closeTab(null, tab.id)} />
-                  </div>
-                )}
-                {tab.id === 'Laporan Barang Keluar' && (
-                  <div className="p-0 h-full bg-slate-50 flex flex-col overflow-hidden">
-                    <OutgoingStockReportView onClose={() => closeTab(null, tab.id)} />
+                    <UnifiedInventoryView onClose={() => closeTab(null, tab.id)} />
                   </div>
                 )}
                 {tab.id === 'Laporan Stok' && (

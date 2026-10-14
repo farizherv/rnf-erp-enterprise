@@ -199,6 +199,7 @@ class InventoryController extends Controller
             'quantity' => 'required|integer',
             'reference' => 'nullable|string',
             'date' => 'required|string',
+            'type' => 'nullable|string',
             'part_number' => 'nullable|string',
             'item_group' => 'nullable|string',
             'po_number' => 'nullable|string',
@@ -209,7 +210,7 @@ class InventoryController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($validated) {
+        return DB::transaction(function () use ($request, $validated) {
             $item = InventoryItem::findOrFail($validated['itemId']);
             $quantity = (int) $validated['quantity'];
             $priceEach = isset($validated['price_each']) && $validated['price_each'] !== '' ? (float) $validated['price_each'] : null;
@@ -217,7 +218,8 @@ class InventoryController extends Controller
                 ? (float) $validated['price_total']
                 : ($priceEach !== null ? $priceEach * $quantity : null);
 
-            $movType = in_array($request->input('type'), ['IN', 'EXCHANGE_IN']) ? $request->input('type') : 'IN';
+            $reqType = $validated['type'] ?? $request->input('type');
+            $movType = in_array($reqType, ['IN', 'EXCHANGE_IN']) ? $reqType : 'IN';
 
             $mov = StockMovement::create([
                 'id' => 'MOV-'.round(microtime(true) * 1000).'-'.rand(100, 999),
@@ -250,6 +252,7 @@ class InventoryController extends Controller
             'quantity' => 'required|integer',
             'reference' => 'nullable|string',
             'date' => 'required|string',
+            'type' => 'nullable|string',
             'part_number' => 'nullable|string',
             'item_group' => 'nullable|string',
             'po_number' => 'nullable|string',
@@ -268,7 +271,8 @@ class InventoryController extends Controller
                 ? (float) $validated['price_total']
                 : ($priceEach !== null ? $priceEach * $quantity : null);
 
-            $movType = in_array($request->input('type'), ['OUT', 'EXCHANGE_OUT']) ? $request->input('type') : 'OUT';
+            $reqType = $validated['type'] ?? $request->input('type');
+            $movType = in_array($reqType, ['OUT', 'EXCHANGE_OUT']) ? $reqType : 'OUT';
 
             $mov = StockMovement::create([
                 'id' => 'MOV-'.round(microtime(true) * 1000).'-'.rand(100, 999),
@@ -301,6 +305,7 @@ class InventoryController extends Controller
             'quantity' => 'required|integer|min:1',
             'reference' => 'nullable|string',
             'date' => 'required|string',
+            'type' => 'nullable|string',
             'part_number' => 'nullable|string',
             'item_group' => 'nullable|string',
             'po_number' => 'nullable|string',

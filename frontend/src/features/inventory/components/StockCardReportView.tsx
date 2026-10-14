@@ -422,6 +422,13 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider leading-none">
                   ({activeItem.category || '-'})
                 </span>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold leading-none ${
+                  (activeItem.type || 'INVENTORY') === 'SERVICE' 
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                    : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                }`}>
+                  {(activeItem.type || 'INVENTORY') === 'SERVICE' ? 'Service' : 'Inventory'}
+                </span>
               </div>
               <p className="text-xs text-slate-400 mt-1 font-medium">
                 Audit Histori Lengkap Keluar &amp; Masuk Material
@@ -651,7 +658,13 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
 
                 <div>
                   <span className="text-slate-400 block font-semibold mb-0.5">Tipe Barang</span>
-                  <span className="font-semibold text-slate-700">{activeItem.type || 'INVENTORY'}</span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${
+                    (activeItem.type || 'INVENTORY') === 'SERVICE'
+                      ? 'bg-purple-100 text-purple-700 border border-purple-200'
+                      : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                  }`}>
+                    {(activeItem.type || 'INVENTORY') === 'SERVICE' ? 'Service' : 'Inventory'}
+                  </span>
                 </div>
 
                 <div>

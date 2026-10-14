@@ -40,6 +40,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
   const [searchPoNo, setSearchPoNo] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
   const [searchVendor, setSearchVendor] = useState('');
+  const [searchItemType, setSearchItemType] = useState('ALL');
 
   React.useEffect(() => {
     if (initialSearchJobReg !== undefined) {
@@ -56,6 +57,13 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
     return movements.filter(m => {
       const itemData = items.find(i => i.id === m.itemId);
       const category = m.item_group || itemData?.itemGroup || itemData?.category || '';
+
+      // Tipe Barang filter
+      if (searchItemType !== 'ALL') {
+        const itemType = (itemData?.type || 'INVENTORY').toUpperCase();
+        if (searchItemType === 'SERVICE' && itemType !== 'SERVICE') return false;
+        if (searchItemType === 'INVENTORY' && itemType === 'SERVICE') return false;
+      }
 
       // JOB-REG filter
       if (searchJobReg) {
@@ -102,7 +110,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
       
       return true;
     });
-  }, [movements, items, startDate, endDate, searchJobReg, searchItemName, searchPoNo, searchCategory, searchVendor, typeFilters]);
+  }, [movements, items, startDate, endDate, searchJobReg, searchItemName, searchPoNo, searchCategory, searchVendor, searchItemType, typeFilters]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
@@ -154,7 +162,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
       alert('Tidak ada data mutasi untuk diekspor.');
       return;
     }
-    const headers = ['No', 'Date', 'JOB REG', 'Mutasi', 'Nama Barang', 'Qty', 'UOM', 'PO No', 'Kategori', 'Price Each', 'Price Total', 'Tax', 'Vendor', 'Remarks'];
+    const headers = ['No', 'Date', 'JOB REG', 'Mutasi', 'Nama Barang', 'Qty', 'UOM', 'PO No', 'Kategori', 'Tipe Barang', 'Price Each', 'Price Total', 'Tax', 'Vendor', 'Remarks'];
     const rows = filteredData.map((mov, idx) => {
       const itemData = items.find(i => i.id === mov.itemId);
       const priceEach = Number(mov.price_each) || 0;
@@ -162,6 +170,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
         ? Number(mov.price_total)
         : priceEach * mov.quantity;
       const categoryName = mov.item_group || itemData?.itemGroup || itemData?.category || '-';
+      const typeLabel = (itemData?.type || 'INVENTORY') === 'SERVICE' ? 'Service' : 'Inventory';
       const dateStr = new Date(mov.date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
       return [
         idx + 1,
@@ -173,6 +182,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
         `"${itemData?.unit || ''}"`,
         `"${mov.po_number || '-'}"`,
         `"${categoryName.replace(/"/g, '""')}"`,
+        `"${typeLabel}"`,
         priceEach,
         calculatedPriceTotal,
         `"${mov.tax_type || '-'}"`,
@@ -367,11 +377,12 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <label className="font-semibold text-slate-800">Cari:</label>
-                  {(searchJobReg || searchItemName || searchPoNo || searchCategory || searchVendor || startDate || endDate) && (
+                  {(searchJobReg || searchItemName || searchItemType !== 'ALL' || searchPoNo || searchCategory || searchVendor || startDate || endDate) && (
                     <button
                       onClick={() => {
                         setSearchJobReg('');
                         setSearchItemName('');
+                        setSearchItemType('ALL');
                         setSearchPoNo('');
                         setSearchCategory('');
                         setSearchVendor('');
@@ -399,6 +410,15 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
                   onChange={(e) => { setSearchItemName(e.target.value); setCurrentPage(1); }}
                   className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
                 />
+                <select
+                  value={searchItemType}
+                  onChange={(e) => { setSearchItemType(e.target.value as any); setCurrentPage(1); }}
+                  className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 text-slate-700 font-medium"
+                >
+                  <option value="ALL">&lt; Semua Tipe Barang &gt;</option>
+                  <option value="INVENTORY">Inventory</option>
+                  <option value="SERVICE">Service</option>
+                </select>
                 <input 
                   type="text" 
                   placeholder="< PO No >" 
@@ -455,6 +475,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
                   <th className="px-4 py-2 border-r border-slate-200">JOB-REG</th>
                   <th className="px-4 py-2 border-r border-slate-200">Mutasi</th>
                   <th className="px-4 py-2 border-r border-slate-200">Nama Barang</th>
+                  <th className="px-4 py-2 text-center border-r border-slate-200">Tipe</th>
                   <th className="px-4 py-2 text-right border-r border-slate-200">Qty</th>
                   <th className="px-4 py-2 border-r border-slate-200">UOM</th>
                   <th className="px-4 py-2 border-r border-slate-200">PO No</th>
@@ -469,7 +490,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
               <tbody className={`divide-y divide-slate-100 ${isRefreshing ? 'opacity-50 pointer-events-none transition-opacity duration-200' : ''}`}>
                 {paginatedData.length === 0 ? (
                   <tr>
-                    <td colSpan={14} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={15} className="px-4 py-8 text-center text-slate-500">
                       Tidak ada data mutasi yang sesuai dengan filter.
                     </td>
                   </tr>
@@ -477,6 +498,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
                   paginatedData.map((mov, index) => {
                     const globalIndex = (currentPage - 1) * pageSize + index + 1;
                     const itemData = items.find(i => i.id === mov.itemId);
+                    const isService = itemData?.type === 'SERVICE';
                     
                     const priceEach = Number(mov.price_each) || 0;
                     const calculatedPriceTotal = mov.price_total !== undefined && mov.price_total !== null && Number(mov.price_total) > 0
@@ -504,6 +526,15 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
                           </span>
                         </td>
                         <td className="px-4 py-2 font-medium text-slate-800 border-r border-slate-100">{mov.itemName}</td>
+                        <td className="px-4 py-2 text-center border-r border-slate-100">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${
+                            isService 
+                              ? 'bg-purple-100 text-purple-700' 
+                              : 'bg-emerald-100 text-emerald-700'
+                          }`}>
+                            {isService ? 'Service' : 'Inventory'}
+                          </span>
+                        </td>
                         <td className="px-4 py-2 text-right border-r border-slate-100 font-bold text-slate-800">{mov.quantity.toLocaleString('id-ID')}</td>
                         <td className="px-4 py-2 text-slate-600 border-r border-slate-100">{itemData?.unit || '-'}</td>
                         <td className="px-4 py-2 font-mono font-medium text-blue-600 border-r border-slate-100">{mov.po_number || '-'}</td>

@@ -23,9 +23,10 @@ interface StockReportViewProps {
   onOpenStockCardTab?: (sku: string) => void;
 }
 
-type SortField = 'sku' | 'name' | 'category' | 'minStock' | 'currentStock' | 'status';
+type SortField = 'sku' | 'name' | 'category' | 'type' | 'minStock' | 'currentStock' | 'status';
 type SortOrder = 'asc' | 'desc';
 type StatusFilter = 'ALL' | 'CRITICAL' | 'NORMAL';
+type TypeFilter = 'ALL' | 'INVENTORY' | 'SERVICE';
 
 export const StockReportView: React.FC<StockReportViewProps> = ({ 
   onClose, 
@@ -54,6 +55,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
   const [searchItemName, setSearchItemName] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState<StatusFilter>('ALL');
+  const [selectedType, setSelectedType] = useState<TypeFilter>('ALL');
 
   // ── Filter Items ──
   const filteredItems = useMemo(() => {
@@ -75,6 +77,13 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
         if ((item.category || '').toLowerCase() !== selectedCategory.toLowerCase()) return false;
       }
 
+      // Filter Tipe Barang (Inventory vs Service)
+      if (selectedType !== 'ALL') {
+        const itemType = (item.type || 'INVENTORY').toUpperCase();
+        if (selectedType === 'SERVICE' && itemType !== 'SERVICE') return false;
+        if (selectedType === 'INVENTORY' && itemType === 'SERVICE') return false;
+      }
+
       // Filter Status Stok (Kritis vs Aman)
       const isCritical = item.currentStock < item.minStock;
       if (selectedStatus === 'CRITICAL' && !isCritical) return false;
@@ -82,7 +91,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
 
       return true;
     });
-  }, [items, searchJobReg, searchItemName, selectedCategory, selectedStatus]);
+  }, [items, searchJobReg, searchItemName, selectedCategory, selectedStatus, selectedType]);
 
   // ── Sort Items ──
   const sortedItems = useMemo(() => {
@@ -142,10 +151,11 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
     setSearchItemName('');
     setSelectedCategory('ALL');
     setSelectedStatus('ALL');
+    setSelectedType('ALL');
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = Boolean(searchJobReg || searchItemName || selectedCategory !== 'ALL' || selectedStatus !== 'ALL');
+  const hasActiveFilters = Boolean(searchJobReg || searchItemName || selectedCategory !== 'ALL' || selectedStatus !== 'ALL' || selectedType !== 'ALL');
 
   // ── Refresh Action ──
   const handleRefresh = async () => {
@@ -169,9 +179,12 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
 
     let tableRows = '';
     sortedItems.forEach((item, idx) => {
-      const isCritical = item.currentStock < item.minStock;
+      const isCritical = item.currentStock <= item.minStock;
       const statusLabel = isCritical ? 'KRITIS' : 'AMAN';
-      const statusColor = isCritical ? '#dc2626' : '#059669';
+      const statusColor = isCritical ? '#dc2626' : '#16a34a';
+      const isService = (item.type || 'INVENTORY') === 'SERVICE';
+      const typeLabel = isService ? 'Service' : 'Inventory';
+      const typeColor = isService ? '#7e22ce' : '#047857';
 
       tableRows += `
         <tr>
@@ -179,6 +192,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
           <td style="font-weight:600;color:#2563eb;">${item.sku}</td>
           <td style="font-weight:500;">${item.name}</td>
           <td>${item.category || '-'}</td>
+          <td style="text-align:center;font-weight:600;color:${typeColor};">${typeLabel}</td>
           <td style="text-align:right;">${item.minStock.toLocaleString('id-ID')} ${item.unit || 'UNIT'}</td>
           <td style="text-align:right;font-weight:bold;color:${isCritical ? '#dc2626' : '#1e293b'};">${item.currentStock.toLocaleString('id-ID')} ${item.unit || 'UNIT'}</td>
           <td style="text-align:center;font-weight:bold;color:${statusColor};">${statusLabel}</td>
@@ -231,7 +245,8 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
                 <th style="width:35px;text-align:center;">No.</th>
                 <th style="width:110px;">JOB-REG</th>
                 <th>Nama Barang</th>
-                <th style="width:100px;">Kategori</th>
+                <th style="width:90px;">Kategori</th>
+                <th style="width:80px;text-align:center;">Tipe Barang</th>
                 <th style="text-align:right;width:100px;">Stok Minimum</th>
                 <th style="text-align:right;width:100px;">Stok Saat Ini</th>
                 <th style="text-align:center;width:80px;">Status</th>
@@ -266,7 +281,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
       printWindow.focus();
       setTimeout(() => printWindow.print(), 250);
     }
-  }, [sortedItems, selectedCategory, selectedStatus]);
+  }, [sortedItems, selectedCategory, selectedStatus, selectedType]);
 
   // ── Enterprise CSV Export ──
   const handleExport = useCallback(() => {
@@ -280,6 +295,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
       'JOB-REG',
       'Nama Barang',
       'Kategori',
+      'Tipe Barang',
       'Satuan (UOM)',
       'Stok Minimum',
       'Stok Saat Ini',
@@ -289,12 +305,14 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
     const rows = sortedItems.map((item, idx) => {
       const isCritical = item.currentStock < item.minStock;
       const statusLabel = isCritical ? 'KRITIS' : 'AMAN';
+      const typeLabel = (item.type || 'INVENTORY') === 'SERVICE' ? 'Service' : 'Inventory';
 
       return [
         idx + 1,
         `"${item.sku}"`,
         `"${(item.name || '').replace(/"/g, '""')}"`,
         `"${(item.category || '').replace(/"/g, '""')}"`,
+        `"${typeLabel}"`,
         `"${item.unit || 'UNIT'}"`,
         item.minStock,
         item.currentStock,
@@ -491,6 +509,20 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
                 </select>
               </div>
 
+              {/* Filter 5: Tipe Barang */}
+              <div className="flex flex-col gap-1.5">
+                <label className="font-semibold text-slate-800">Tipe Barang:</label>
+                <select 
+                  value={selectedType}
+                  onChange={(e) => { setSelectedType(e.target.value as TypeFilter); setCurrentPage(1); }}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 font-medium text-xs text-slate-700"
+                >
+                  <option value="ALL">Semua Tipe Barang</option>
+                  <option value="INVENTORY">Inventory (Barang Stok)</option>
+                  <option value="SERVICE">Service (Jasa / Perbaikan)</option>
+                </select>
+              </div>
+
               {/* Reset All Button */}
               {hasActiveFilters && (
                 <button 
@@ -540,6 +572,14 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
                   </th>
 
                   <th 
+                    onClick={() => handleSort('type')} 
+                    className="px-3.5 py-2.5 text-center border-r border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors group"
+                  >
+                    <span>Tipe Barang</span>
+                    {renderSortIndicator('type')}
+                  </th>
+
+                  <th 
                     onClick={() => handleSort('minStock')} 
                     className="px-3.5 py-2.5 text-right border-r border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors group"
                   >
@@ -569,7 +609,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
               <tbody className={`divide-y divide-slate-100 ${isRefreshing ? 'opacity-50 pointer-events-none transition-opacity duration-200' : ''}`}>
                 {paginated.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-slate-500">
+                    <td colSpan={8} className="px-4 py-12 text-center text-slate-500">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <Package className="w-8 h-8 text-slate-300" />
                         <span className="font-semibold text-slate-600">Tidak ada material yang sesuai kriteria filter.</span>
@@ -582,6 +622,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
                     const globalIdx = (currentPage - 1) * pageSize + idx + 1;
                     const isSelected = selectedItemId === item.id;
                     const isCritical = item.currentStock < item.minStock;
+                    const isService = (item.type || 'INVENTORY') === 'SERVICE';
 
                     return (
                       <tr 
@@ -620,6 +661,16 @@ export const StockReportView: React.FC<StockReportViewProps> = ({
 
                         <td className="px-3.5 py-2 text-slate-600 border-r border-slate-100 font-medium">
                           {item.category || '-'}
+                        </td>
+
+                        <td className="px-3.5 py-2 text-center border-r border-slate-100">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${
+                            isService 
+                              ? 'bg-purple-100 text-purple-700' 
+                              : 'bg-emerald-100 text-emerald-700'
+                          }`}>
+                            {isService ? 'Service' : 'Inventory'}
+                          </span>
                         </td>
 
                         <td className="px-3.5 py-2 text-right font-medium text-slate-600 border-r border-slate-100">

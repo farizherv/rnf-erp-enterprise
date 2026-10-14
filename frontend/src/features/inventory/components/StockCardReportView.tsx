@@ -14,7 +14,8 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  Calendar
 } from 'lucide-react';
 import { useInventory, type InventoryItem } from '../context/InventoryContext';
 
@@ -400,13 +401,13 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-[#f8fafc] overflow-hidden">
       
-      {/* ── 1. Page Header (Full Page Standard matching Laporan Stok) ── */}
-      <div className="px-6 py-3.5 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 shadow-sm">
-        <div className="flex items-center gap-3">
+      {/* ── 1. Page Header (Spacious, Clean, High-Readability) ── */}
+      <div className="px-6 py-3.5 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 shadow-xs">
+        <div className="flex items-center gap-3.5">
           {onClose && (
             <button 
               onClick={onClose}
-              className="mr-1 p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 shadow-2xs"
               title="Kembali ke Laporan Stok"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -422,8 +423,8 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
               <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
                 {activeItem.sku}
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase">
-                {activeItem.category || '-'}
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                • {activeItem.category || '-'}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
@@ -432,23 +433,41 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
           </div>
         </div>
 
+        {/* Header Action Buttons */}
         <div className="flex items-center gap-2">
-          {/* Direct Shortcut to Mutasi Stok */}
           {onNavigateToMutasi && (
             <button
               onClick={() => onNavigateToMutasi(activeItem.sku)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors shadow-2xs"
               title="Buka dan filter barang ini di menu Mutasi Stok"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
               <span>Buka di Mutasi Stok</span>
             </button>
           )}
 
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            title="Cetak Kartu Stok Resmi"
+          >
+            <Printer className="w-3.5 h-3.5 text-slate-600" />
+            <span>Print Kartu Stok</span>
+          </button>
+
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            title="Unduh data dalam format CSV"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Ekspor</span>
+          </button>
+
           {onClose && (
             <button 
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors ml-1"
               title="Tutup Halaman"
             >
               <X className="w-5 h-5" />
@@ -457,86 +476,76 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
         </div>
       </div>
 
-      {/* ── 2. Executive Metric KPI Banner (Full Width) ── */}
-      <div className="px-6 py-2.5 bg-white border-b border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
-        
-        {/* Card 1: Stok Fisik Saat Ini */}
-        <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 shadow-2xs">
-          <div className={`p-2 rounded-lg ${isCritical ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
-            <Layers className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">Stok Fisik Saat Ini</span>
-            <div className="flex items-center gap-1.5">
-              <span className={`text-base font-extrabold ${isCritical ? 'text-red-600' : 'text-slate-800'}`}>
-                {activeItem.currentStock.toLocaleString('id-ID')} <span className="text-xs font-medium text-slate-500">{activeItem.unit || 'UNIT'}</span>
-              </span>
-              <span className={`text-[10px] font-extrabold ${isCritical ? 'text-red-600' : 'text-emerald-600'}`}>
-                ({isCritical ? 'KRITIS' : 'AMAN'})
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Total Barang Masuk */}
-        <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 shadow-2xs">
-          <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
-            <ArrowDownLeft className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">Total Masuk (Inbound)</span>
-            <span className="block text-base font-extrabold text-emerald-700 leading-tight">
-              +{stats.totalInQty.toLocaleString('id-ID')} <span className="text-xs font-medium text-slate-500">{activeItem.unit || 'UNIT'}</span>
+      {/* ── 2. Sleek Horizontal Executive Metric Strip (Lega & Bebas Kepadatan Visual) ── */}
+      <div className="px-6 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs shrink-0">
+        <div className="flex items-center gap-6 flex-wrap">
+          
+          {/* Metric 1: Stok Fisik */}
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Stok Fisik Saat Ini:</span>
+            <span className={`font-extrabold text-sm ${isCritical ? 'text-red-600' : 'text-slate-800'}`}>
+              {activeItem.currentStock.toLocaleString('id-ID')} {activeItem.unit || 'UNIT'}
             </span>
-            <span className="text-[10px] text-slate-400">{stats.inCount} Transaksi</span>
-          </div>
-        </div>
-
-        {/* Card 3: Total Barang Keluar */}
-        <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 shadow-2xs">
-          <div className="p-2 rounded-lg bg-amber-100 text-amber-700">
-            <ArrowUpRight className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">Total Keluar (Outbound)</span>
-            <span className="block text-base font-extrabold text-amber-700 leading-tight">
-              -{stats.totalOutQty.toLocaleString('id-ID')} <span className="text-xs font-medium text-slate-500">{activeItem.unit || 'UNIT'}</span>
+            <span className={`text-[11px] font-bold ${isCritical ? 'text-red-600' : 'text-emerald-600'}`}>
+              ({isCritical ? 'KRITIS' : 'AMAN'})
             </span>
-            <span className="text-[10px] text-slate-400">{stats.outCount} Transaksi</span>
           </div>
-        </div>
 
-        {/* Card 4: Stok Minimum */}
-        <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 shadow-2xs">
-          <div className="p-2 rounded-lg bg-slate-100 text-slate-700">
-            <AlertTriangle className="w-4 h-4 text-slate-600" />
-          </div>
-          <div className="min-w-0">
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">Batas Stok Minimum</span>
-            <span className="block text-base font-extrabold text-slate-800 leading-tight">
-              {activeItem.minStock.toLocaleString('id-ID')} <span className="text-xs font-medium text-slate-500">{activeItem.unit || 'UNIT'}</span>
+          <div className="w-px h-4 bg-slate-300 hidden md:block" />
+
+          {/* Metric 2: Total Masuk */}
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Total Masuk:</span>
+            <span className="font-bold text-emerald-700 text-sm">
+              +{stats.totalInQty.toLocaleString('id-ID')} {activeItem.unit || 'UNIT'}
             </span>
-            <span className="text-[10px] text-slate-500">
-              Selisih: <strong className={activeItem.currentStock - activeItem.minStock < 0 ? 'text-red-600' : 'text-emerald-700'}>
+            <span className="text-slate-400 text-[11px]">({stats.inCount} Transaksi)</span>
+          </div>
+
+          <div className="w-px h-4 bg-slate-300 hidden md:block" />
+
+          {/* Metric 3: Total Keluar */}
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Total Keluar:</span>
+            <span className="font-bold text-amber-700 text-sm">
+              -{stats.totalOutQty.toLocaleString('id-ID')} {activeItem.unit || 'UNIT'}
+            </span>
+            <span className="text-slate-400 text-[11px]">({stats.outCount} Transaksi)</span>
+          </div>
+
+          <div className="w-px h-4 bg-slate-300 hidden md:block" />
+
+          {/* Metric 4: Batas Stok Minimum & Selisih */}
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Batas Min:</span>
+            <span className="font-semibold text-slate-700 text-sm">
+              {activeItem.minStock.toLocaleString('id-ID')} {activeItem.unit || 'UNIT'}
+            </span>
+            <span className="text-slate-400 text-[11px]">
+              (Selisih: <strong className={activeItem.currentStock - activeItem.minStock < 0 ? 'text-red-600' : 'text-emerald-700'}>
                 {activeItem.currentStock - activeItem.minStock > 0 ? `+${activeItem.currentStock - activeItem.minStock}` : activeItem.currentStock - activeItem.minStock} {activeItem.unit || 'UNIT'}
-              </strong>
+              </strong>)
             </span>
           </div>
+
         </div>
 
+        <div className="hidden lg:block text-slate-400 text-[11px]">
+          Total Riwayat: <strong className="text-slate-700">{chronologicalMovements.length}</strong> Mutasi
+        </div>
       </div>
 
-      {/* ── 3. Action Toolbar & Tabs ── */}
-      <div className="flex items-center justify-between px-6 py-2 bg-slate-50 border-b border-slate-200 shrink-0">
+      {/* ── 3. Navigation Tabs & Quick Filters Bar ── */}
+      <div className="flex items-center justify-between px-6 py-2 bg-white border-b border-slate-200 shrink-0">
         
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold shadow-2xs">
+        {/* Navigation Tabs (Underline / Pill Clean Style) */}
+        <div className="flex items-center gap-1.5 text-xs font-semibold">
           <button
             onClick={() => { setActiveTab('ALL'); setCurrentPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-all ${
               activeTab === 'ALL'
                 ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Semua Mutasi ({chronologicalMovements.length})
@@ -546,7 +555,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
             className={`px-3 py-1.5 rounded-lg transition-all ${
               activeTab === 'IN'
                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Barang Masuk ({stats.inCount})
@@ -556,7 +565,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
             className={`px-3 py-1.5 rounded-lg transition-all ${
               activeTab === 'OUT'
                 ? 'bg-amber-50 text-amber-700 border border-amber-200 font-bold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Barang Keluar ({stats.outCount})
@@ -566,14 +575,14 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
             className={`px-3 py-1.5 rounded-lg transition-all ${
               activeTab === 'INFO'
                 ? 'bg-slate-100 text-slate-800 border border-slate-200 font-bold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Spesifikasi Master
           </button>
         </div>
 
-        {/* Quick Filters & Actions */}
+        {/* Quick Filters */}
         {activeTab !== 'INFO' && (
           <div className="flex items-center gap-2">
             
@@ -582,28 +591,29 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Cari Ref, PO, Vendor..."
+                placeholder="Cari Ref, PO, Vendor, Remarks..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs w-52 bg-white focus:outline-none focus:border-blue-500 shadow-2xs placeholder:text-slate-400"
+                className="pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs w-60 bg-white focus:outline-none focus:border-blue-500 shadow-2xs placeholder:text-slate-400"
               />
             </div>
 
             {/* Date Range */}
-            <div className="flex items-center gap-1 text-xs">
+            <div className="flex items-center gap-1.5 text-xs bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
-                className="px-2 py-1.5 border border-slate-300 rounded-lg text-xs text-slate-600 bg-white focus:outline-none focus:border-blue-500 shadow-2xs"
+                className="border-none bg-transparent text-xs text-slate-600 focus:outline-none"
                 title="Dari Tanggal"
               />
-              <span className="text-slate-400">-</span>
+              <span className="text-slate-400 font-bold">-</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
-                className="px-2 py-1.5 border border-slate-300 rounded-lg text-xs text-slate-600 bg-white focus:outline-none focus:border-blue-500 shadow-2xs"
+                className="border-none bg-transparent text-xs text-slate-600 focus:outline-none"
                 title="Sampai Tanggal"
               />
             </div>
@@ -611,41 +621,20 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
             {hasInnerFilters && (
               <button
                 onClick={handleResetFilters}
-                className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-200 rounded-lg transition-colors border border-slate-300 bg-white shadow-2xs"
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-slate-600 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
                 title="Reset Filter Riwayat"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset</span>
               </button>
             )}
-
-            <div className="w-px h-5 bg-slate-300 mx-1" />
-
-            {/* Print Stock Card */}
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors shadow-xs"
-              title="Cetak Kartu Stok Resmi"
-            >
-              <Printer className="w-3.5 h-3.5 text-slate-600" />
-              <span>Print Kartu Stok</span>
-            </button>
-
-            {/* Export CSV */}
-            <button
-              onClick={handleExportCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors shadow-xs"
-              title="Unduh data dalam format CSV"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Ekspor</span>
-            </button>
 
           </div>
         )}
 
       </div>
 
-      {/* ── 4. Main Body: Full Width Table or Master Info ── */}
+      {/* ── 4. Main Body: Generous Full-Height Table or Master Info ── */}
       <div className="flex-1 overflow-auto bg-white min-w-0">
         
         {activeTab === 'INFO' ? (
@@ -715,24 +704,24 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
             </div>
           </div>
         ) : (
-          /* Historical Movement Table with Running Balance (Full Screen Page) */
+          /* Historical Movement Table with Running Balance (Lega, Bersih, Presisi) */
           <table className="w-full text-left text-xs whitespace-nowrap">
             <thead className="sticky top-0 bg-slate-50 z-10 border-b border-slate-200 select-none shadow-2xs">
               <tr className="text-slate-600 font-bold uppercase tracking-wider text-[11px]">
-                <th className="px-3.5 py-2.5 w-12 text-center border-r border-slate-200">No.</th>
-                <th className="px-3.5 py-2.5 w-24 text-center border-r border-slate-200">Tanggal</th>
-                <th className="px-3.5 py-2.5 border-r border-slate-200">No. Bukti / Ref</th>
-                <th className="px-3.5 py-2.5 text-center w-24 border-r border-slate-200">Tipe</th>
-                <th className="px-3.5 py-2.5 text-right w-24 border-r border-slate-200">Masuk</th>
-                <th className="px-3.5 py-2.5 text-right w-24 border-r border-slate-200">Keluar</th>
-                <th className="px-3.5 py-2.5 text-right w-28 border-r border-slate-200 bg-blue-50/50">
+                <th className="px-3.5 py-3 w-12 text-center border-r border-slate-200">No.</th>
+                <th className="px-3.5 py-3 w-28 text-center border-r border-slate-200">Tanggal</th>
+                <th className="px-3.5 py-3 border-r border-slate-200">No. Bukti / Ref</th>
+                <th className="px-3.5 py-3 text-center w-24 border-r border-slate-200">Tipe</th>
+                <th className="px-3.5 py-3 text-right w-24 border-r border-slate-200">Masuk</th>
+                <th className="px-3.5 py-3 text-right w-24 border-r border-slate-200">Keluar</th>
+                <th className="px-4 py-3 text-right w-32 border-r border-slate-200 bg-blue-50/60">
                   <span className="text-blue-900 font-extrabold">Saldo Berjalan</span>
                 </th>
-                <th className="px-3.5 py-2.5 border-r border-slate-200">PO No</th>
-                <th className="px-3.5 py-2.5 border-r border-slate-200">Vendor / Rekanan</th>
-                <th className="px-3.5 py-2.5 text-right border-r border-slate-200">Harga Satuan</th>
-                <th className="px-3.5 py-2.5 text-right border-r border-slate-200">Total Nilai</th>
-                <th className="px-3.5 py-2.5">Catatan / Remarks</th>
+                <th className="px-3.5 py-3 border-r border-slate-200">PO No</th>
+                <th className="px-3.5 py-3 border-r border-slate-200">Vendor / Rekanan</th>
+                <th className="px-3.5 py-3 text-right border-r border-slate-200">Harga Satuan</th>
+                <th className="px-3.5 py-3 text-right border-r border-slate-200">Total Nilai</th>
+                <th className="px-4 py-3">Catatan / Remarks</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -758,51 +747,51 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
 
                   return (
                     <tr key={m.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="px-3.5 py-2 text-center text-slate-400 font-mono border-r border-slate-100">{globalIdx}</td>
-                      <td className="px-3.5 py-2 text-center text-slate-600 border-r border-slate-100">{dateFormatted}</td>
-                      <td className="px-3.5 py-2 font-semibold text-slate-800 border-r border-slate-100">{m.reference || '-'}</td>
+                      <td className="px-3.5 py-2.5 text-center text-slate-400 font-mono border-r border-slate-100">{globalIdx}</td>
+                      <td className="px-3.5 py-2.5 text-center text-slate-600 border-r border-slate-100">{dateFormatted}</td>
+                      <td className="px-3.5 py-2.5 font-semibold text-slate-800 border-r border-slate-100">{m.reference || '-'}</td>
                       
-                      <td className="px-3.5 py-2 text-center border-r border-slate-100">
+                      <td className="px-3.5 py-2.5 text-center border-r border-slate-100">
                         {isIn ? (
                           <span className="inline-flex items-center gap-1 font-bold text-emerald-700">
-                            <ArrowDownLeft className="w-3 h-3" /> MASUK
+                            <ArrowDownLeft className="w-3.5 h-3.5" /> MASUK
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 font-bold text-amber-700">
-                            <ArrowUpRight className="w-3 h-3" /> KELUAR
+                            <ArrowUpRight className="w-3.5 h-3.5" /> KELUAR
                           </span>
                         )}
                       </td>
 
-                      <td className="px-3.5 py-2 text-right font-bold text-emerald-700 border-r border-slate-100">
+                      <td className="px-3.5 py-2.5 text-right font-bold text-emerald-700 border-r border-slate-100">
                         {isIn ? `+${m.quantity.toLocaleString('id-ID')}` : '-'}
                       </td>
 
-                      <td className="px-3.5 py-2 text-right font-bold text-amber-700 border-r border-slate-100">
+                      <td className="px-3.5 py-2.5 text-right font-bold text-amber-700 border-r border-slate-100">
                         {!isIn ? `-${m.quantity.toLocaleString('id-ID')}` : '-'}
                       </td>
 
-                      <td className="px-3.5 py-2 text-right font-extrabold text-blue-900 border-r border-slate-100 bg-blue-50/40">
+                      <td className="px-4 py-2.5 text-right font-extrabold text-blue-900 border-r border-slate-100 bg-blue-50/40">
                         {m.runningBalance.toLocaleString('id-ID')} <span className="text-[10px] font-normal text-slate-500">{activeItem.unit || 'UNIT'}</span>
                       </td>
 
-                      <td className="px-3.5 py-2 text-slate-600 border-r border-slate-100 font-medium">
+                      <td className="px-3.5 py-2.5 text-slate-600 border-r border-slate-100 font-medium">
                         {m.po_number || '-'}
                       </td>
 
-                      <td className="px-3.5 py-2 text-slate-700 border-r border-slate-100">
+                      <td className="px-3.5 py-2.5 text-slate-700 border-r border-slate-100">
                         {m.vendor || '-'}
                       </td>
 
-                      <td className="px-3.5 py-2 text-right font-mono text-slate-600 border-r border-slate-100">
+                      <td className="px-3.5 py-2.5 text-right font-mono text-slate-600 border-r border-slate-100">
                         {m.price_each ? `Rp ${Number(m.price_each).toLocaleString('id-ID')}` : '-'}
                       </td>
 
-                      <td className="px-3.5 py-2 text-right font-mono font-semibold text-slate-800 border-r border-slate-100">
+                      <td className="px-3.5 py-2.5 text-right font-mono font-semibold text-slate-800 border-r border-slate-100">
                         {m.calculatedPriceTotal ? `Rp ${m.calculatedPriceTotal.toLocaleString('id-ID')}` : '-'}
                       </td>
 
-                      <td className="px-3.5 py-2 text-slate-500 max-w-xs truncate" title={m.notes || ''}>
+                      <td className="px-4 py-2.5 text-slate-500 max-w-xs truncate" title={m.notes || ''}>
                         {m.notes || '-'}
                       </td>
                     </tr>

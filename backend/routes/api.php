@@ -57,48 +57,12 @@ Route::middleware('auth:sanctum')->group(function () {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
 
-            // Seed initial Vendors if empty
-            if (\Illuminate\Support\Facades\Schema::hasTable('vendors') && \App\Models\Vendor::count() === 0) {
-                $defaultVendors = [
-                    'PT. United Tractors',
-                    'PT. Trakindo Utama',
-                    'PT. Hexindo Adiperkasa',
-                    'PT. Kobexindo Tractors',
-                    'CV. Sumber Teknik',
-                    'CV. Maju Bersama',
-                    'PT. RNF Global Vendor'
-                ];
-                foreach ($defaultVendors as $idx => $name) {
-                    \App\Models\Vendor::create([
-                        'id' => 'VEN-' . str_pad($idx + 1, 3, '0', STR_PAD_LEFT),
-                        'name' => $name,
-                    ]);
-                }
-            }
-
-            // Seed initial Item Groups if empty
-            if (\Illuminate\Support\Facades\Schema::hasTable('item_groups') && \App\Models\ItemGroup::count() === 0) {
-                $defaultGroups = [
-                    'SPAREPART',
-                    'CONSUMABLE',
-                    'TOOLS & EQUIPMENT',
-                    'FABRICATION MATERIAL',
-                    'GENERAL'
-                ];
-                foreach ($defaultGroups as $idx => $name) {
-                    \App\Models\ItemGroup::create([
-                        'id' => 'GRP-' . str_pad($idx + 1, 3, '0', STR_PAD_LEFT),
-                        'name' => $name,
-                    ]);
-                }
-            }
-
             \Illuminate\Support\Facades\Artisan::call('optimize:clear');
             $optimizeOutput = \Illuminate\Support\Facades\Artisan::output();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Database migration, provisioning, and cache clear executed successfully.',
+                'message' => 'Database migration and cache clear executed successfully.',
                 'migrate_output' => $migrateOutput,
                 'optimize_output' => $optimizeOutput,
             ]);

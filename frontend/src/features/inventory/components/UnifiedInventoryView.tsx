@@ -619,13 +619,13 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
   const taxAmount = formData.tax_type === 'PPN' ? subtotal * 0.11 : 0;
   const grandTotal = subtotal + taxAmount;
 
-  // Category suggestions from categories and itemGroups
+  // Category suggestions from master categories
   const categorySuggestions = useMemo(() => {
     const set = new Set<string>();
     categories.forEach((c: any) => { if (c.name) set.add(c.name); });
-    itemGroups.forEach((g: any) => { if (g.name) set.add(g.name); });
+    items.forEach((it: any) => { if (it.category) set.add(it.category); });
     return Array.from(set);
-  }, [categories, itemGroups]);
+  }, [categories, items]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -860,17 +860,11 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">Vendor</label>
                   <input 
                     type="text"
-                    list="vendor-options"
                     placeholder="Nama vendor..."
                     value={formData.vendor}
                     onChange={e => setFormData({ ...formData, vendor: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 text-sm"
                   />
-                  <datalist id="vendor-options">
-                    {vendors.map((v: any) => (
-                      <option key={v.id} value={v.name} />
-                    ))}
-                  </datalist>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">

@@ -6,8 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Models\ItemCategory;
 use App\Models\ItemUnit;
 use App\Models\Customer;
-use App\Models\Vendor;
-use App\Models\ItemGroup;
 
 class MasterDataSeeder extends Seeder
 {
@@ -118,44 +116,6 @@ class MasterDataSeeder extends Seeder
                     'contact' => '-',
                     'phone' => '-',
                 ]
-            );
-        }
-
-        // =============================================
-        // MASTER VENDOR
-        // =============================================
-        $vendors = [
-            'PT. United Tractors',
-            'PT. Trakindo Utama',
-            'PT. Hexindo Adiperkasa',
-            'PT. Kobexindo Tractors',
-            'CV. Sumber Teknik',
-            'CV. Maju Bersama',
-            'PT. RNF Global Vendor',
-        ];
-
-        foreach ($vendors as $index => $name) {
-            Vendor::firstOrCreate(
-                ['name' => $name],
-                ['id' => 'VEN-' . str_pad($index + 1, 3, '0', STR_PAD_LEFT)]
-            );
-        }
-
-        // =============================================
-        // MASTER ITEM GROUP
-        // =============================================
-        $itemGroups = [
-            'SPAREPART',
-            'CONSUMABLE',
-            'TOOLS & EQUIPMENT',
-            'FABRICATION MATERIAL',
-            'GENERAL',
-        ];
-
-        foreach ($itemGroups as $index => $name) {
-            ItemGroup::firstOrCreate(
-                ['name' => $name],
-                ['id' => 'GRP-' . str_pad($index + 1, 3, '0', STR_PAD_LEFT)]
             );
         }
     }

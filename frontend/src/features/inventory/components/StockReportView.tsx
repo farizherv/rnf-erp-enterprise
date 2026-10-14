@@ -9,7 +9,9 @@ import {
   Package, 
   ArrowUpDown, 
   ChevronUp, 
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 
@@ -156,7 +158,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose }) => 
     let tableRows = '';
     sortedItems.forEach((item, idx) => {
       const isCritical = item.currentStock < item.minStock;
-      const statusLabel = isCritical ? 'Kritis' : 'Aman';
+      const statusLabel = isCritical ? 'KRITIS' : 'AMAN';
       const statusColor = isCritical ? '#dc2626' : '#059669';
 
       tableRows += `
@@ -274,7 +276,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose }) => 
 
     const rows = sortedItems.map((item, idx) => {
       const isCritical = item.currentStock < item.minStock;
-      const statusLabel = isCritical ? 'Kritis' : 'Aman';
+      const statusLabel = isCritical ? 'KRITIS' : 'AMAN';
 
       return [
         idx + 1,
@@ -578,10 +580,8 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose }) => 
                           {item.name}
                         </td>
 
-                        <td className="px-3.5 py-2 text-slate-600 border-r border-slate-100">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                            {item.category || '-'}
-                          </span>
+                        <td className="px-3.5 py-2 text-slate-600 border-r border-slate-100 font-medium">
+                          {item.category || '-'}
                         </td>
 
                         <td className="px-3.5 py-2 text-right font-medium text-slate-600 border-r border-slate-100">
@@ -596,9 +596,9 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose }) => 
 
                         <td className="px-3.5 py-2 text-center">
                           {isCritical ? (
-                            <span className="text-red-600 font-bold">Kritis</span>
+                            <span className="text-red-600 font-bold">KRITIS</span>
                           ) : (
-                            <span className="text-emerald-600 font-bold">Aman</span>
+                            <span className="text-emerald-600 font-bold">AMAN</span>
                           )}
                         </td>
 
@@ -613,43 +613,51 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose }) => 
           {/* 4. Pagination Footer */}
           <div className="px-4 py-2 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0 text-xs text-slate-600 select-none">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <span>Tampilkan:</span>
                 <select 
                   value={pageSize} 
                   onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} 
-                  className="px-2 py-0.5 border border-slate-300 rounded-md bg-white outline-none focus:border-blue-500 font-semibold"
+                  className="px-1 py-0.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500 font-semibold"
                 >
                   <option value={20}>20</option>
                   <option value={50}>50</option>
                   <option value={100}>100</option>
                 </select>
               </div>
-              <div className="w-px h-3.5 bg-slate-300" />
+              <div className="w-px h-3 bg-slate-300" />
               <span>
-                Menampilkan <strong className="text-slate-800">{total === 0 ? 0 : (currentPage - 1) * pageSize + 1}</strong> - <strong className="text-slate-800">{Math.min(currentPage * pageSize, total)}</strong> dari <strong className="text-slate-800">{total}</strong> Material
+                Menampilkan {total === 0 ? 0 : (currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, total)} dari {total} Baris
               </span>
             </div>
 
             <div className="flex items-center gap-1">
               <button 
-                disabled={currentPage <= 1} 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                className="px-2 py-1 border border-slate-200 rounded-md hover:bg-slate-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed font-medium"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="p-1 hover:bg-slate-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Halaman Sebelumnya"
               >
-                Sebelumnya
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              
-              <div className="flex items-center gap-1 px-1">
-                <span className="font-semibold text-slate-700">Halaman {currentPage} dari {totalPages}</span>
-              </div>
-
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button
+                  key={p}
+                  onClick={() => setCurrentPage(p)}
+                  className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                    currentPage === p ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-slate-200 text-slate-600'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
               <button 
-                disabled={currentPage >= totalPages} 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
-                className="px-2 py-1 border border-slate-200 rounded-md hover:bg-slate-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed font-medium"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className="p-1 hover:bg-slate-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Halaman Selanjutnya"
               >
-                Selanjutnya
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>

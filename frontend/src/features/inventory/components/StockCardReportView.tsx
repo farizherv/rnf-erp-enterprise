@@ -24,7 +24,7 @@ export interface StockCardReportViewProps {
   onNavigateToMutasi?: (jobReg: string) => void;
 }
 
-type TabType = 'ALL' | 'IN' | 'OUT' | 'INFO';
+type TabType = 'ALL' | 'IN' | 'OUT' | 'EXCHANGE' | 'INFO';
 
 export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
   item: propItem,
@@ -74,7 +74,8 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
 
     let balance = 0;
     return sorted.map((mov) => {
-      if (mov.type === 'IN') {
+      const isIn = mov.type === 'IN' || mov.type === 'EXCHANGE_IN' || (mov.type === 'IN' && mov.notes?.includes('[EXCHANGE]'));
+      if (isIn) {
         balance += mov.quantity;
       } else {
         balance -= mov.quantity;
@@ -99,9 +100,14 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
     let totalOutQty = 0;
     let outCount = 0;
     let totalInValue = 0;
+    let exchangeCount = 0;
 
     itemMovements.forEach(m => {
-      if (m.type === 'IN') {
+      const isEx = m.type === 'EXCHANGE_OUT' || m.type === 'EXCHANGE_IN' || m.notes?.includes('[EXCHANGE]');
+      if (isEx) exchangeCount++;
+
+      const isIn = m.type === 'IN' || m.type === 'EXCHANGE_IN' || (m.type === 'IN' && m.notes?.includes('[EXCHANGE]'));
+      if (isIn) {
         totalInQty += m.quantity;
         inCount++;
         const price = Number(m.price_total) || ((Number(m.price_each) || 0) * m.quantity);
@@ -118,6 +124,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
       totalOutQty,
       outCount,
       totalInValue,
+      exchangeCount,
       totalTransactions: itemMovements.length
     };
   }, [itemMovements]);
@@ -127,9 +134,11 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
     let list = [...chronologicalMovements];
 
     if (activeTab === 'IN') {
-      list = list.filter(m => m.type === 'IN');
+      list = list.filter(m => (m.type === 'IN' || m.type === 'EXCHANGE_IN') && !m.notes?.includes('[EXCHANGE]') && m.type !== 'EXCHANGE_IN');
     } else if (activeTab === 'OUT') {
-      list = list.filter(m => m.type === 'OUT');
+      list = list.filter(m => (m.type === 'OUT' || m.type === 'EXCHANGE_OUT') && !m.notes?.includes('[EXCHANGE]') && m.type !== 'EXCHANGE_OUT');
+    } else if (activeTab === 'EXCHANGE') {
+      list = list.filter(m => m.type === 'EXCHANGE_OUT' || m.type === 'EXCHANGE_IN' || m.notes?.includes('[EXCHANGE]'));
     }
 
     if (startDate) {
@@ -189,7 +198,11 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
     const printList = [...displayedMovements].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     printList.forEach((m, idx) => {
-      const isIn = m.type === 'IN';
+      const isExOut = m.type === 'EXCHANGE_OUT' || (m.type === 'OUT' && m.notes?.includes('[EXCHANGE]'));
+      const isExIn = m.type === 'EXCHANGE_IN' || (m.type === 'IN' && m.notes?.includes('[EXCHANGE]'));
+      const isIn = m.type === 'IN' || isExIn;
+      const mutasiLabel = isExOut ? 'EXCHANGE OUT' : isExIn ? 'EXCHANGE IN' : isIn ? 'MASUK' : 'KELUAR';
+      const labelColor = isExOut ? '#1d4ed8' : isExIn ? '#b45309' : isIn ? '#059669' : '#d97706';
       const dateStr = new Date(m.date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const inQty = isIn ? m.quantity.toLocaleString('id-ID') : '-';
       const outQty = !isIn ? m.quantity.toLocaleString('id-ID') : '-';
@@ -201,7 +214,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
           <td style="text-align:center;">${idx + 1}</td>
           <td style="text-align:center;">${dateStr}</td>
           <td style="font-weight:600;">${m.itemName || activeItem.name || '-'}</td>
-          <td style="text-align:center;font-weight:bold;color:${isIn ? '#059669' : '#d97706'};">${isIn ? 'MASUK' : 'KELUAR'}</td>
+          <td style="text-align:center;font-weight:bold;color:${labelColor};">${mutasiLabel}</td>
           <td style="text-align:right;color:#059669;font-weight:bold;">${inQty}</td>
           <td style="text-align:right;color:#d97706;font-weight:bold;">${outQty}</td>
           <td style="text-align:right;font-weight:bold;background:#f8fafc;">${m.runningBalance.toLocaleString('id-ID')}</td>
@@ -350,13 +363,16 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
     ];
 
     const rows = displayedMovements.map((m, idx) => {
-      const isIn = m.type === 'IN';
+      const isExOut = m.type === 'EXCHANGE_OUT' || (m.type === 'OUT' && m.notes?.includes('[EXCHANGE]'));
+      const isExIn = m.type === 'EXCHANGE_IN' || (m.type === 'IN' && m.notes?.includes('[EXCHANGE]'));
+      const isIn = m.type === 'IN' || isExIn;
+      const mutasiLabel = isExOut ? 'EXCHANGE OUT' : isExIn ? 'EXCHANGE IN' : isIn ? 'MASUK' : 'KELUAR';
       return [
         idx + 1,
         `"${m.date}"`,
         `"${activeItem.sku}"`,
         `"${(activeItem.name || '').replace(/"/g, '""')}"`,
-        `"${isIn ? 'MASUK' : 'KELUAR'}"`,
+        `"${mutasiLabel}"`,
         `"${(m.reference || '').replace(/"/g, '""')}"`,
         isIn ? m.quantity : 0,
         !isIn ? m.quantity : 0,
@@ -565,6 +581,16 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
             Barang Keluar ({stats.outCount})
           </button>
           <button
+            onClick={() => { setActiveTab('EXCHANGE'); setCurrentPage(1); }}
+            className={`px-3 py-1.5 rounded-lg transition-all ${
+              activeTab === 'EXCHANGE'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            Exchange ({stats.exchangeCount})
+          </button>
+          <button
             onClick={() => { setActiveTab('INFO'); setCurrentPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-all ${
               activeTab === 'INFO'
@@ -730,7 +756,9 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
               ) : (
                 paginatedMovements.map((m, idx) => {
                   const globalIdx = (currentPage - 1) * pageSize + idx + 1;
-                  const isIn = m.type === 'IN';
+                  const isExOut = m.type === 'EXCHANGE_OUT' || (m.type === 'OUT' && m.notes?.includes('[EXCHANGE]'));
+                  const isExIn = m.type === 'EXCHANGE_IN' || (m.type === 'IN' && m.notes?.includes('[EXCHANGE]'));
+                  const isIn = m.type === 'IN' || isExIn;
                   const dateFormatted = new Date(m.date).toLocaleDateString('id-ID', {
                     day: '2-digit',
                     month: '2-digit',
@@ -744,7 +772,15 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
                       <td className="px-3.5 py-2.5 font-semibold text-slate-800 border-r border-slate-100">{m.itemName || activeItem.name || '-'}</td>
                       
                       <td className="px-3.5 py-2.5 text-center border-r border-slate-100">
-                        {isIn ? (
+                        {isExOut ? (
+                          <span className="inline-flex items-center gap-1 font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 text-xs">
+                            <ArrowUpRight className="w-3.5 h-3.5" /> EXCHANGE OUT
+                          </span>
+                        ) : isExIn ? (
+                          <span className="inline-flex items-center gap-1 font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-xs">
+                            <ArrowDownLeft className="w-3.5 h-3.5" /> EXCHANGE IN
+                          </span>
+                        ) : isIn ? (
                           <span className="inline-flex items-center gap-1 font-bold text-emerald-700">
                             <ArrowDownLeft className="w-3.5 h-3.5" /> MASUK
                           </span>

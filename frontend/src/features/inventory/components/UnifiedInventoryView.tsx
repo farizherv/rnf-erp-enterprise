@@ -47,10 +47,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
       setSearchJobReg(initialSearchJobReg);
     }
   }, [initialSearchJobReg]);
-  const [typeFilters, setTypeFilters] = useState<{ [key: string]: boolean }>({
-    'IN': true,
-    'OUT': true
-  });
+  const [mutasiFilter, setMutasiFilter] = useState<'ALL' | 'IN' | 'OUT' | 'EXCHANGE'>('ALL');
 
   // Derived Data
   const filteredData = useMemo(() => {
@@ -105,12 +102,19 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
       if (startDate && m.date < startDate) return false;
       if (endDate && m.date > endDate) return false;
       
-      // Type filters
-      if (!typeFilters[m.type]) return false;
+      // Mutasi Filter (Skenario 2: Masuk, Keluar, Exchange)
+      const isEx = m.type === 'EXCHANGE_OUT' || m.type === 'EXCHANGE_IN' || m.notes?.includes('[EXCHANGE]');
+      if (mutasiFilter === 'IN') {
+        if (isEx || m.type !== 'IN') return false;
+      } else if (mutasiFilter === 'OUT') {
+        if (isEx || m.type !== 'OUT') return false;
+      } else if (mutasiFilter === 'EXCHANGE') {
+        if (!isEx) return false;
+      }
       
       return true;
     });
-  }, [movements, items, startDate, endDate, searchJobReg, searchItemName, searchPoNo, searchCategory, searchVendor, searchItemType, typeFilters]);
+  }, [movements, items, startDate, endDate, searchJobReg, searchItemName, searchPoNo, searchCategory, searchVendor, searchItemType, mutasiFilter]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
@@ -172,11 +176,15 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
       const categoryName = mov.item_group || itemData?.itemGroup || itemData?.category || '-';
       const typeLabel = (itemData?.type || 'INVENTORY') === 'SERVICE' ? 'Service' : 'Inventory';
       const dateStr = new Date(mov.date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const isExOut = mov.type === 'EXCHANGE_OUT' || (mov.type === 'OUT' && mov.notes?.includes('[EXCHANGE]'));
+      const isExIn = mov.type === 'EXCHANGE_IN' || (mov.type === 'IN' && mov.notes?.includes('[EXCHANGE]'));
+      const mutasiLabel = isExOut ? 'Exchange Out' : isExIn ? 'Exchange In' : mov.type === 'IN' ? 'Masuk' : 'Keluar';
+
       return [
         idx + 1,
         `"${dateStr}"`,
         `"${itemData?.sku || mov.reference || '-'}"`,
-        `"${mov.type === 'IN' ? 'Masuk' : 'Keluar'}"`,
+        `"${mutasiLabel}"`,
         `"${(mov.itemName || '').replace(/"/g, '""')}"`,
         mov.quantity,
         `"${itemData?.unit || ''}"`,
@@ -210,11 +218,15 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
         : priceEach * mov.quantity;
       const categoryName = mov.item_group || itemData?.itemGroup || itemData?.category || '-';
       const dateStr = new Date(mov.date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const isExOut = mov.type === 'EXCHANGE_OUT' || (mov.type === 'OUT' && mov.notes?.includes('[EXCHANGE]'));
+      const isExIn = mov.type === 'EXCHANGE_IN' || (mov.type === 'IN' && mov.notes?.includes('[EXCHANGE]'));
+      const mutasiLabel = isExOut ? 'Exchange Out' : isExIn ? 'Exchange In' : mov.type === 'IN' ? 'Masuk' : 'Keluar';
+
       tableHTML += `<tr>
         <td style="text-align:center;">${idx + 1}</td>
         <td>${dateStr}</td>
         <td>${itemData?.sku || mov.reference || '-'}</td>
-        <td>${mov.type === 'IN' ? 'Masuk' : 'Keluar'}</td>
+        <td>${mutasiLabel}</td>
         <td>${mov.itemName}</td>
         <td style="text-align:right;font-weight:bold;">${mov.quantity.toLocaleString('id-ID')}</td>
         <td>${itemData?.unit || '-'}</td>
@@ -340,22 +352,28 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
 
         <div className="flex bg-slate-200/60 p-0.5 rounded-lg ml-auto">
           <button 
-            onClick={() => { setTypeFilters({ 'IN': true, 'OUT': true }); setCurrentPage(1); setSelectedId(null); }}
-            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${typeFilters['IN'] && typeFilters['OUT'] ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+            onClick={() => { setMutasiFilter('ALL'); setCurrentPage(1); setSelectedId(null); }}
+            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mutasiFilter === 'ALL' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Semua Mutasi
           </button>
           <button 
-            onClick={() => { setTypeFilters({ 'IN': true, 'OUT': false }); setCurrentPage(1); setSelectedId(null); }}
-            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${typeFilters['IN'] && !typeFilters['OUT'] ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+            onClick={() => { setMutasiFilter('IN'); setCurrentPage(1); setSelectedId(null); }}
+            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mutasiFilter === 'IN' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Penerimaan (IN)
           </button>
           <button 
-            onClick={() => { setTypeFilters({ 'IN': false, 'OUT': true }); setCurrentPage(1); setSelectedId(null); }}
-            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${!typeFilters['IN'] && typeFilters['OUT'] ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+            onClick={() => { setMutasiFilter('OUT'); setCurrentPage(1); setSelectedId(null); }}
+            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mutasiFilter === 'OUT' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Pengeluaran (OUT)
+          </button>
+          <button 
+            onClick={() => { setMutasiFilter('EXCHANGE'); setCurrentPage(1); setSelectedId(null); }}
+            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mutasiFilter === 'EXCHANGE' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Exchange
           </button>
         </div>
       </div>
@@ -505,6 +523,8 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
                       ? Number(mov.price_total)
                       : priceEach * mov.quantity;
                     const resolvedCategory = mov.item_group || itemData?.itemGroup || itemData?.category || '-';
+                    const isExOut = mov.type === 'EXCHANGE_OUT' || (mov.type === 'OUT' && mov.notes?.includes('[EXCHANGE]'));
+                    const isExIn = mov.type === 'EXCHANGE_IN' || (mov.type === 'IN' && mov.notes?.includes('[EXCHANGE]'));
 
                     return (
                       <tr 
@@ -521,9 +541,23 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
                           {itemData?.sku || mov.reference || '-'}
                         </td>
                         <td className="px-4 py-2 border-r border-slate-100">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${mov.type === 'IN' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                            {mov.type === 'IN' ? 'Masuk' : 'Keluar'}
-                          </span>
+                          {isExOut ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+                              Exchange Out
+                            </span>
+                          ) : isExIn ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                              Exchange In
+                            </span>
+                          ) : mov.type === 'IN' ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
+                              Masuk
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-700 border border-rose-200">
+                              Keluar
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-2 font-medium text-slate-800 border-r border-slate-100">{mov.itemName}</td>
                         <td className="px-4 py-2 text-center border-r border-slate-100">
@@ -659,7 +693,10 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
   const isEditing = Boolean(initialData && initialData.id);
   const isDuplicate = Boolean(initialData && !initialData.id);
   const [activeTab, setActiveTab] = useState<'MUTASI' | 'FINANCIAL'>('MUTASI');
-  const [type, setType] = useState<'IN'|'OUT'>(initialData?.type || 'IN');
+  const isInitialExOut = initialData?.type === 'EXCHANGE_OUT' || (initialData?.type === 'OUT' && initialData?.notes?.includes('[EXCHANGE]'));
+  const isInitialExIn = initialData?.type === 'EXCHANGE_IN' || (initialData?.type === 'IN' && initialData?.notes?.includes('[EXCHANGE]'));
+  const defaultType = isInitialExOut ? 'EXCHANGE_OUT' : isInitialExIn ? 'EXCHANGE_IN' : (initialData?.type || 'IN');
+  const [type, setType] = useState<string>(defaultType);
   
   const firstItem = items && items.length > 0 ? items[0] : null;
   const initialItemId = initialData?.itemId || (firstItem ? firstItem.id : '');
@@ -711,11 +748,13 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
       return;
     }
     
-    const availableStock = isEditing && type === 'OUT' && initialData?.itemId === formData.itemId
+    const isOutbound = type === 'OUT' || type === 'EXCHANGE_OUT';
+    const isInitialOutbound = initialData?.type === 'OUT' || initialData?.type === 'EXCHANGE_OUT' || (initialData?.notes?.includes('[EXCHANGE]'));
+    const availableStock = isEditing && isInitialOutbound && initialData?.itemId === formData.itemId
       ? (selectedItemData ? selectedItemData.currentStock + initialData.quantity : 0)
       : (selectedItemData ? selectedItemData.currentStock : 0);
 
-    if (type === 'OUT' && selectedItemData && qtyNum > availableStock) {
+    if (isOutbound && selectedItemData && qtyNum > availableStock) {
       alert(`Stok tidak mencukupi! Sisa stok tersedia: ${availableStock} ${selectedItemData.unit || 'Unit'}`);
       setActiveTab('FINANCIAL');
       return;
@@ -726,6 +765,11 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
       : null;
     const priceTotalVal = priceEachVal !== null ? (priceEachVal * qtyNum) : null;
 
+    let finalNotes = formData.notes ? String(formData.notes).trim() : '';
+    if ((type === 'EXCHANGE_OUT' || type === 'EXCHANGE_IN') && !finalNotes.includes('[EXCHANGE]')) {
+      finalNotes = finalNotes ? `[EXCHANGE] ${finalNotes}` : '[EXCHANGE] Tukar Guling Unit';
+    }
+
     const extraData = {
       part_number: formData.part_number ? String(formData.part_number).trim() : null,
       item_group: formData.item_group ? String(formData.item_group).trim() : (selectedItemData?.itemGroup || selectedItemData?.category || null),
@@ -734,7 +778,8 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
       price_each: priceEachVal,
       tax_type: formData.tax_type || 'NON_PPN',
       price_total: priceTotalVal,
-      notes: formData.notes ? String(formData.notes).trim() : null
+      notes: finalNotes || null,
+      type: type
     };
 
     const finalReference = selectedItemData?.sku || (formData.reference ? String(formData.reference).trim() : '');
@@ -750,7 +795,7 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
           ...extraData
         });
       } else {
-        if (type === 'IN') {
+        if (type === 'IN' || type === 'EXCHANGE_IN') {
           await receiveStock(formData.itemId, qtyNum, finalReference, formData.date, extraData);
         } else {
           await issueStock(formData.itemId, qtyNum, finalReference, formData.date, extraData);
@@ -826,11 +871,13 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
                     required
                     disabled={isEditing}
                     value={type}
-                    onChange={e => setType(e.target.value as 'IN' | 'OUT')}
+                    onChange={e => setType(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 text-sm bg-white font-medium"
                   >
-                    <option value="IN">Penerimaan (IN / Masuk)</option>
-                    <option value="OUT">Pengeluaran (OUT / Keluar)</option>
+                    <option value="IN">Penerimaan (IN / Masuk Biasa)</option>
+                    <option value="OUT">Pengeluaran (OUT / Keluar Biasa)</option>
+                    <option value="EXCHANGE_OUT">Exchange Out (Kirim Stok Bagus / Tukar Guling)</option>
+                    <option value="EXCHANGE_IN">Exchange In (Terima Core Rusak dari Customer)</option>
                   </select>
                 </div>
                 <div>

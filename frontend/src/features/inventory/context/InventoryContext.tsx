@@ -51,12 +51,14 @@ export interface ItemGroup {
   name: string;
 }
 
+export type MovementType = "IN" | "OUT" | "EXCHANGE_OUT" | "EXCHANGE_IN";
+
 export interface StockMovement {
   id: string;
   date: string;
   itemId: string;
   itemName: string;
-  type: "IN" | "OUT";
+  type: MovementType | string;
   quantity: number;
   reference: string;
   notes?: string;

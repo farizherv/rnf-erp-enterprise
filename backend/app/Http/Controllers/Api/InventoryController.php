@@ -217,12 +217,14 @@ class InventoryController extends Controller
                 ? (float) $validated['price_total']
                 : ($priceEach !== null ? $priceEach * $quantity : null);
 
+            $movType = in_array($request->input('type'), ['IN', 'EXCHANGE_IN']) ? $request->input('type') : 'IN';
+
             $mov = StockMovement::create([
                 'id' => 'MOV-'.round(microtime(true) * 1000).'-'.rand(100, 999),
                 'date' => $validated['date'],
                 'itemId' => $item->id,
                 'itemName' => $item->name,
-                'type' => 'IN',
+                'type' => $movType,
                 'quantity' => $quantity,
                 'reference' => $validated['reference'] ?? null,
                 'part_number' => $validated['part_number'] ?? null,
@@ -258,7 +260,7 @@ class InventoryController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($validated) {
+        return DB::transaction(function () use ($request, $validated) {
             $item = InventoryItem::findOrFail($validated['itemId']);
             $quantity = (int) $validated['quantity'];
             $priceEach = isset($validated['price_each']) && $validated['price_each'] !== '' ? (float) $validated['price_each'] : null;
@@ -266,12 +268,14 @@ class InventoryController extends Controller
                 ? (float) $validated['price_total']
                 : ($priceEach !== null ? $priceEach * $quantity : null);
 
+            $movType = in_array($request->input('type'), ['OUT', 'EXCHANGE_OUT']) ? $request->input('type') : 'OUT';
+
             $mov = StockMovement::create([
                 'id' => 'MOV-'.round(microtime(true) * 1000).'-'.rand(100, 999),
                 'date' => $validated['date'],
                 'itemId' => $item->id,
                 'itemName' => $item->name,
-                'type' => 'OUT',
+                'type' => $movType,
                 'quantity' => $quantity,
                 'reference' => $validated['reference'] ?? null,
                 'part_number' => $validated['part_number'] ?? null,
@@ -307,15 +311,19 @@ class InventoryController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($id, $validated) {
+        return DB::transaction(function () use ($request, $id, $validated) {
             $mov = StockMovement::findOrFail($id);
             $newItem = InventoryItem::findOrFail($validated['itemId']);
             $oldItem = InventoryItem::find($mov->itemId);
             $quantity = (int) $validated['quantity'];
 
+            $wasIn = in_array($mov->type, ['IN', 'EXCHANGE_IN']);
+            $newType = $request->input('type') ?: $mov->type;
+            $isNowIn = in_array($newType, ['IN', 'EXCHANGE_IN']);
+
             // Revert old impact on previous item
             if ($oldItem) {
-                if ($mov->type === 'IN') {
+                if ($wasIn) {
                     $oldItem->decrement('currentStock', $mov->quantity);
                 } else {
                     $oldItem->increment('currentStock', $mov->quantity);
@@ -331,6 +339,7 @@ class InventoryController extends Controller
             $mov->update([
                 'itemId' => $newItem->id,
                 'itemName' => $newItem->name,
+                'type' => $newType,
                 'quantity' => $quantity,
                 'date' => $validated['date'],
                 'reference' => $validated['reference'] ?? null,
@@ -346,7 +355,7 @@ class InventoryController extends Controller
 
             // Apply new impact on the new target item
             $targetItem = InventoryItem::findOrFail($newItem->id);
-            if ($mov->type === 'IN') {
+            if ($isNowIn) {
                 $targetItem->increment('currentStock', $quantity);
             } else {
                 $targetItem->decrement('currentStock', $quantity);
@@ -363,7 +372,8 @@ class InventoryController extends Controller
             $item = InventoryItem::find($mov->itemId);
 
             if ($item) {
-                if ($mov->type === 'IN') {
+                $wasIn = in_array($mov->type, ['IN', 'EXCHANGE_IN']);
+                if ($wasIn) {
                     $item->decrement('currentStock', $mov->quantity);
                 } else {
                     $item->increment('currentStock', $mov->quantity);

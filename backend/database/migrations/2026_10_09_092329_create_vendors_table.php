@@ -8,11 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('vendors', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('vendors')) {
+            Schema::create('vendors', function (Blueprint $table) {
+                $table->string('id')->primary();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

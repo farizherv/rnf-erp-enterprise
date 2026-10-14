@@ -8,11 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('item_groups', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('item_groups')) {
+            Schema::create('item_groups', function (Blueprint $table) {
+                $table->string('id')->primary();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

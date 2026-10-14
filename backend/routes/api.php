@@ -58,7 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
             $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
 
             // Seed initial Vendors if empty
-            if (\App\Models\Vendor::count() === 0) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('vendors') && \App\Models\Vendor::count() === 0) {
                 $defaultVendors = [
                     'PT. United Tractors',
                     'PT. Trakindo Utama',
@@ -77,7 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
             }
 
             // Seed initial Item Groups if empty
-            if (\App\Models\ItemGroup::count() === 0) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('item_groups') && \App\Models\ItemGroup::count() === 0) {
                 $defaultGroups = [
                     'SPAREPART',
                     'CONSUMABLE',

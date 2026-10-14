@@ -144,6 +144,8 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
     if (searchTerm) {
       const q = searchTerm.trim().toLowerCase();
       list = list.filter(m => 
+        (m.itemName || '').toLowerCase().includes(q) ||
+        (activeItem.name || '').toLowerCase().includes(q) ||
         (m.reference || '').toLowerCase().includes(q) ||
         (m.po_number || '').toLowerCase().includes(q) ||
         (m.vendor || '').toLowerCase().includes(q) ||
@@ -200,7 +202,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
         <tr>
           <td style="text-align:center;">${idx + 1}</td>
           <td style="text-align:center;">${dateStr}</td>
-          <td style="font-weight:600;">${m.reference || '-'}</td>
+          <td style="font-weight:600;">${m.itemName || activeItem.name || '-'}</td>
           <td style="text-align:center;font-weight:bold;color:${isIn ? '#059669' : '#d97706'};">${isIn ? 'MASUK' : 'KELUAR'}</td>
           <td style="text-align:right;color:#059669;font-weight:bold;">${inQty}</td>
           <td style="text-align:right;color:#d97706;font-weight:bold;">${outQty}</td>
@@ -281,7 +283,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
               <tr>
                 <th style="width:25px;text-align:center;">No.</th>
                 <th style="width:65px;text-align:center;">Tanggal</th>
-                <th style="width:90px;">No. Bukti / Ref</th>
+                <th style="width:110px;">Nama Barang</th>
                 <th style="width:50px;text-align:center;">Tipe</th>
                 <th style="width:55px;text-align:right;">Masuk</th>
                 <th style="width:55px;text-align:right;">Keluar</th>
@@ -418,9 +420,9 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
             <Package className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h2 className="text-lg font-bold text-slate-800 leading-none">Kartu Stok &amp; Riwayat Mutasi Barang</h2>
-              <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+              <span className="text-base font-extrabold text-blue-600 font-mono tracking-wide">
                 {activeItem.sku}
               </span>
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
@@ -428,7 +430,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              <strong className="text-slate-800">{activeItem.name}</strong> • Satuan: <strong className="text-slate-700">{activeItem.unit || 'UNIT'}</strong> • Audit Histori Lengkap Keluar &amp; Masuk
+              Audit Histori Lengkap Keluar &amp; Masuk
             </p>
           </div>
         </div>
@@ -529,10 +531,6 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
           </div>
 
         </div>
-
-        <div className="hidden lg:block text-slate-400 text-[11px]">
-          Total Riwayat: <strong className="text-slate-700">{chronologicalMovements.length}</strong> Mutasi
-        </div>
       </div>
 
       {/* ── 3. Navigation Tabs & Quick Filters Bar ── */}
@@ -591,7 +589,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Cari Ref, PO, Vendor, Remarks..."
+                placeholder="Cari Barang, PO, Vendor, Remarks..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 className="pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs w-60 bg-white focus:outline-none focus:border-blue-500 shadow-2xs placeholder:text-slate-400"
@@ -710,7 +708,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
               <tr className="text-slate-600 font-bold uppercase tracking-wider text-[11px]">
                 <th className="px-3.5 py-3 w-12 text-center border-r border-slate-200">No.</th>
                 <th className="px-3.5 py-3 w-28 text-center border-r border-slate-200">Tanggal</th>
-                <th className="px-3.5 py-3 border-r border-slate-200">No. Bukti / Ref</th>
+                <th className="px-3.5 py-3 border-r border-slate-200">Nama Barang</th>
                 <th className="px-3.5 py-3 text-center w-24 border-r border-slate-200">Tipe</th>
                 <th className="px-3.5 py-3 text-right w-24 border-r border-slate-200">Masuk</th>
                 <th className="px-3.5 py-3 text-right w-24 border-r border-slate-200">Keluar</th>
@@ -749,7 +747,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
                     <tr key={m.id || idx} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-3.5 py-2.5 text-center text-slate-400 font-mono border-r border-slate-100">{globalIdx}</td>
                       <td className="px-3.5 py-2.5 text-center text-slate-600 border-r border-slate-100">{dateFormatted}</td>
-                      <td className="px-3.5 py-2.5 font-semibold text-slate-800 border-r border-slate-100">{m.reference || '-'}</td>
+                      <td className="px-3.5 py-2.5 font-semibold text-slate-800 border-r border-slate-100">{m.itemName || activeItem.name || '-'}</td>
                       
                       <td className="px-3.5 py-2.5 text-center border-r border-slate-100">
                         {isIn ? (

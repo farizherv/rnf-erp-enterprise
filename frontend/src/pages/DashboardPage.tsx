@@ -23,9 +23,7 @@ import { FinancialStatement } from '../features/gl/components/FinancialStatement
 import { MasterAuditLog } from '../shared/components/MasterAuditLog';
 import { EnterpriseReportViewer } from '../features/gl/components/reports/EnterpriseReportViewer';
 import { MasterItemView } from '../features/inventory/components/MasterItemView';
-import { IncomingStockView } from '../features/inventory/components/IncomingStockView';
-import { UserManagementView } from '../features/settings/components/UserManagementView';
-import { OutgoingStockView } from '../features/inventory/components/OutgoingStockView';
+import { UnifiedInventoryView } from '../features/inventory/components/UnifiedInventoryView';
 import { StockReportView } from '../features/inventory/components/StockReportView';
 import { IncomingStockReportView } from '../features/inventory/components/IncomingStockReportView';
 import { OutgoingStockReportView } from '../features/inventory/components/OutgoingStockReportView';
@@ -266,14 +264,9 @@ export const DashboardPage: React.FC = () => {
                     <MasterItemView onClose={() => closeTab(null, tab.id)} />
                   </div>
                 )}
-                {tab.id === 'Barang Masuk' && (
+                {tab.id === 'Mutasi Stok' && (
                   <div className="p-0 h-full bg-slate-50 flex flex-col overflow-hidden">
-                    <IncomingStockView onClose={() => closeTab(null, tab.id)} />
-                  </div>
-                )}
-                {tab.id === 'Barang Keluar' && (
-                  <div className="p-0 h-full bg-slate-50 flex flex-col overflow-hidden">
-                    <OutgoingStockView onClose={() => closeTab(null, tab.id)} />
+                    <UnifiedInventoryView onClose={() => closeTab(null, tab.id)} />
                   </div>
                 )}
                 {tab.id === 'Laporan Barang Masuk' && (
@@ -334,7 +327,7 @@ export const DashboardPage: React.FC = () => {
                 )}
                 
                 {/* Fallback for undeveloped modules */}
-                {tab.id !== 'Beranda' && tab.id !== 'Buku Besar' && tab.id !== 'Kas Bank' && tab.id !== 'Persediaan' && tab.id !== 'Penjualan' && tab.id !== 'Pembelian' && tab.id !== 'Aset Tetap' && tab.id !== 'Daftar' && tab.id !== 'RMA' && tab.id !== 'New Recurring' && tab.id !== 'Jurnal Baru' && tab.id !== 'Daftar Jurnal' && tab.id !== 'Chart of Account' && tab.id !== 'Laporan Buku Besar' && tab.id !== 'Konfigurasi Penomoran' && tab.id !== 'Period End' && tab.id !== 'Laporan Keuangan' && tab.id !== 'Master Audit Log' && tab.id !== 'Master Barang & Jasa' && tab.id !== 'Barang Masuk' && tab.id !== 'Barang Keluar' && tab.id !== 'Laporan Barang Masuk' && tab.id !== 'Laporan Barang Keluar' && tab.id !== 'Laporan Stok' && !tab.id.startsWith('Daftar Jurnal : ') && !tab.id.startsWith('Preview Cetak : ') && !tab.id.startsWith('ReportViewer : ') && (
+                {tab.id !== 'Beranda' && tab.id !== 'Buku Besar' && tab.id !== 'Kas Bank' && tab.id !== 'Persediaan' && tab.id !== 'Penjualan' && tab.id !== 'Pembelian' && tab.id !== 'Aset Tetap' && tab.id !== 'Daftar' && tab.id !== 'RMA' && tab.id !== 'New Recurring' && tab.id !== 'Jurnal Baru' && tab.id !== 'Daftar Jurnal' && tab.id !== 'Chart of Account' && tab.id !== 'Laporan Buku Besar' && tab.id !== 'Konfigurasi Penomoran' && tab.id !== 'Period End' && tab.id !== 'Laporan Keuangan' && tab.id !== 'Master Audit Log' && tab.id !== 'Master Barang & Jasa' && tab.id !== 'Mutasi Stok' && tab.id !== 'Laporan Barang Masuk' && tab.id !== 'Laporan Barang Keluar' && tab.id !== 'Laporan Stok' && !tab.id.startsWith('Daftar Jurnal : ') && !tab.id.startsWith('Preview Cetak : ') && !tab.id.startsWith('ReportViewer : ') && (
                   <div className="flex items-center justify-center h-full text-slate-400 font-medium">
                     Modul {tab.label} sedang dalam pengembangan...
                   </div>

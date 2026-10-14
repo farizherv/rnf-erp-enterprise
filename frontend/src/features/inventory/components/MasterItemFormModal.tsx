@@ -105,7 +105,7 @@ export const MasterItemFormModal: React.FC<MasterItemFormModalProps> = ({ onClos
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Satuan *</label>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">UOM *</label>
               <select 
                 required
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 text-sm"

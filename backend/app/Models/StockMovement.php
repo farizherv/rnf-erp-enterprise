@@ -10,5 +10,15 @@ class StockMovement extends Model
 
     public $incrementing = false;
 
-    protected $fillable = ['id', 'date', 'itemId', 'itemName', 'type', 'quantity', 'reference', 'notes'];
+    protected $fillable = [
+        'id', 'date', 'itemId', 'itemName', 'type', 'quantity', 'reference', 
+        'notes', 'part_number', 'item_group', 'po_number', 'vendor', 
+        'price_each', 'tax_type', 'price_total'
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'price_each' => 'float',
+        'price_total' => 'float',
+    ];
 }

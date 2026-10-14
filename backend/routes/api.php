@@ -34,6 +34,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/inventory/customers/{id}', [InventoryController::class, 'updateCustomer']);
     Route::delete('/inventory/customers/{id}', [InventoryController::class, 'destroyCustomer']);
 
+    Route::post('/inventory/vendors', [InventoryController::class, 'storeVendor']);
+    Route::put('/inventory/vendors/{id}', [InventoryController::class, 'updateVendor']);
+    Route::delete('/inventory/vendors/{id}', [InventoryController::class, 'destroyVendor']);
+
+    Route::post('/inventory/item-groups', [InventoryController::class, 'storeItemGroup']);
+    Route::put('/inventory/item-groups/{id}', [InventoryController::class, 'updateItemGroup']);
+    Route::delete('/inventory/item-groups/{id}', [InventoryController::class, 'destroyItemGroup']);
+
     Route::post('/inventory/movements/in', [InventoryController::class, 'storeMovementIn']);
     Route::post('/inventory/movements/out', [InventoryController::class, 'storeMovementOut']);
     Route::put('/inventory/movements/{id}', [InventoryController::class, 'updateMovement']);

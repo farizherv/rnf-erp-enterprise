@@ -34,6 +34,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
   const [editUnitData, setEditUnitData] = useState<{ id: string; name: string } | null>(null);
   const [editCustomerData, setEditCustomerData] = useState<Customer | null>(null);
 
+
   // Filters
   const [searchNo, setSearchNo] = useState('');
   const [searchKet, setSearchKet] = useState('');
@@ -83,7 +84,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
   const handleDelete = () => {
     if (!selectedId) return alert('Silakan pilih data terlebih dahulu.');
     
-    const label = activeTab === 'BARANG' ? 'barang' : activeTab === 'KATEGORI' ? 'kategori' : activeTab === 'CUSTOMER' ? 'customer' : 'satuan';
+    const label = activeTab === 'BARANG' ? 'barang' : activeTab === 'KATEGORI' ? 'kategori' : activeTab === 'CUSTOMER' ? 'customer' : 'uom';
     if (!confirm(`Yakin ingin menghapus data ${label} ini?`)) return;
 
     if (activeTab === 'BARANG') deleteItem(selectedId);
@@ -117,11 +118,11 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
 
   // --- Print ---
   const handlePrint = useCallback(() => {
-    const title = activeTab === 'BARANG' ? 'Data Barang & Jasa' : activeTab === 'KATEGORI' ? 'Data Kategori' : activeTab === 'CUSTOMER' ? 'Data Customer' : 'Data Satuan';
+    const title = activeTab === 'BARANG' ? 'Data Barang & Jasa' : activeTab === 'KATEGORI' ? 'Data Kategori' : activeTab === 'CUSTOMER' ? 'Data Customer' : 'Data UOM';
     let tableHTML = '';
 
     if (activeTab === 'BARANG') {
-      tableHTML = `<table><thead><tr><th>No.</th><th>JOB-REG</th><th>Nama Barang</th><th>Customer</th><th>Kategori</th><th>Tipe</th><th>Stok</th><th>Satuan</th></tr></thead><tbody>`;
+      tableHTML = `<table><thead><tr><th>No.</th><th>JOB-REG</th><th>Nama Barang</th><th>Customer</th><th>Kategori</th><th>Tipe Barang</th><th>Stok</th><th>UOM</th></tr></thead><tbody>`;
       filteredItems.forEach((item, idx) => {
         tableHTML += `<tr><td>${idx + 1}</td><td>${item.sku}</td><td>${item.name}</td><td>${item.customerName || '-'}</td><td>${item.category}</td><td>${item.type === 'SERVICE' ? 'Service' : 'Inventory'}</td><td>${item.currentStock}</td><td>${item.unit}</td></tr>`;
       });
@@ -139,7 +140,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
       });
       tableHTML += `</tbody></table>`;
     } else {
-      tableHTML = `<table><thead><tr><th>No.</th><th>Satuan</th></tr></thead><tbody>`;
+      tableHTML = `<table><thead><tr><th>No.</th><th>UOM</th></tr></thead><tbody>`;
       filteredUnits.forEach((u, idx) => {
         tableHTML += `<tr><td>${idx + 1}</td><td>${u.name}</td></tr>`;
       });
@@ -173,10 +174,10 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
   // --- Export CSV ---
   const handleExport = useCallback(() => {
     let csvContent = '';
-    const title = activeTab === 'BARANG' ? 'Data_Barang_Jasa' : activeTab === 'KATEGORI' ? 'Data_Kategori' : activeTab === 'CUSTOMER' ? 'Data_Customer' : 'Data_Satuan';
+    const title = activeTab === 'BARANG' ? 'Data_Barang_Jasa' : activeTab === 'KATEGORI' ? 'Data_Kategori' : activeTab === 'CUSTOMER' ? 'Data_Customer' : 'Data_UOM';
 
     if (activeTab === 'BARANG') {
-      csvContent = 'No,JOB-REG,Nama Barang,Customer,Kategori,Tipe,Stok,Satuan\n';
+      csvContent = 'No,JOB-REG,Nama Barang,Customer,Kategori,Tipe Barang,Stok,UOM\n';
       filteredItems.forEach((item, idx) => {
         csvContent += `${idx + 1},"${item.sku}","${item.name}","${item.customerName || '-'}","${item.category}","${item.type === 'SERVICE' ? 'Service' : 'Inventory'}",${item.currentStock},"${item.unit}"\n`;
       });
@@ -191,7 +192,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
         csvContent += `${idx + 1},"${c.code}","${c.name}"\n`;
       });
     } else {
-      csvContent = 'No,Satuan\n';
+      csvContent = 'No,UOM\n';
       filteredUnits.forEach((u, idx) => {
         csvContent += `${idx + 1},"${u.name}"\n`;
       });
@@ -237,6 +238,8 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
     return true;
   });
 
+
+
   const renderDataBarang = () => (
     <div className="flex-1 overflow-auto bg-white border-l border-slate-200">
       <table className="w-full text-left text-sm">
@@ -247,9 +250,9 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
             <th className="px-4 py-2 border-r border-slate-200">Nama Barang</th>
             <th className="px-4 py-2 border-r border-slate-200">Customer</th>
             <th className="px-4 py-2 border-r border-slate-200">Kategori</th>
-            <th className="px-4 py-2 border-r border-slate-200">Tipe</th>
+            <th className="px-4 py-2 border-r border-slate-200">Tipe Barang</th>
             <th className="px-4 py-2 text-right border-r border-slate-200">Stok</th>
-            <th className="px-4 py-2">Satuan</th>
+            <th className="px-4 py-2">UOM</th>
           </tr>
         </thead>
         <tbody className={`divide-y divide-slate-100 ${isRefreshing ? 'opacity-50 pointer-events-none transition-opacity duration-200' : ''}`}>
@@ -275,7 +278,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
             </tr>
           ))}
           {filteredItems.length === 0 && (
-            <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Tidak ada data.</td></tr>
+            <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500">Tidak ada data.</td></tr>
           )}
         </tbody>
       </table>
@@ -308,13 +311,15 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
     </div>
   );
 
+
+
   const renderDataSatuan = () => (
     <div className="flex-1 overflow-auto bg-white border-l border-slate-200">
       <table className="w-full text-left text-sm">
         <thead className="sticky top-0 bg-white z-10">
           <tr className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
             <th className="px-4 py-2 w-12 text-center border-r border-slate-200">No.</th>
-            <th className="px-4 py-2">Satuan Barang</th>
+            <th className="px-4 py-2">Nama UOM</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -330,7 +335,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
             </tr>
           ))}
           {filteredUnits.length === 0 && (
-            <tr><td colSpan={2} className="px-4 py-8 text-center text-slate-500">Tidak ada data satuan.</td></tr>
+            <tr><td colSpan={2} className="px-4 py-8 text-center text-slate-500">Tidak ada data UOM.</td></tr>
           )}
         </tbody>
       </table>
@@ -379,7 +384,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
           </div>
           <div>
             <h2 className="text-xl font-bold text-slate-800 leading-none">
-              {activeTab === 'BARANG' ? 'Data Barang & Jasa' : activeTab === 'KATEGORI' ? 'Data Kategori' : activeTab === 'CUSTOMER' ? 'Data Customer' : 'Data Satuan'}
+              {activeTab === 'BARANG' ? 'Data Barang & Jasa' : activeTab === 'KATEGORI' ? 'Data Kategori' : activeTab === 'CUSTOMER' ? 'Data Customer' : 'Data UOM'}
             </h2>
           </div>
         </div>
@@ -455,7 +460,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
             onClick={() => { setActiveTab('SATUAN'); setCurrentPage(1); setSelectedId(null); setSearchNo(''); setSearchKet(''); setSearchCustomer(''); }}
             className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${activeTab === 'SATUAN' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
           >
-            Satuan
+            UOM
           </button>
         </div>
       </div>
@@ -487,22 +492,39 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
                     </button>
                   )}
                 </div>
-                <input 
-                  type="text" 
-                  placeholder={activeTab === 'CUSTOMER' ? "< Kode Customer >" : "< JOB-REG >"}
-                  value={searchNo}
-                  onChange={(e) => { setSearchNo(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
-                />
-                {activeTab !== 'CUSTOMER' && (
+                {activeTab === 'BARANG' && (
                   <input 
                     type="text" 
-                    placeholder={activeTab === 'KATEGORI' ? "< Nama Kategori >" : activeTab === 'SATUAN' ? "< Nama Satuan >" : "< Nama Barang >"}
-                    value={searchKet}
-                    onChange={(e) => { setSearchKet(e.target.value); setCurrentPage(1); }}
+                    placeholder="< JOB-REG >"
+                    value={searchNo}
+                    onChange={(e) => { setSearchNo(e.target.value); setCurrentPage(1); }}
                     className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
                   />
                 )}
+                {activeTab === 'CUSTOMER' && (
+                  <input 
+                    type="text" 
+                    placeholder="< Kode Customer >"
+                    value={searchNo}
+                    onChange={(e) => { setSearchNo(e.target.value); setCurrentPage(1); }}
+                    className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
+                  />
+                )}
+                <input 
+                  type="text" 
+                  placeholder={
+                    activeTab === 'CUSTOMER'
+                      ? "< Nama Customer >"
+                      : activeTab === 'KATEGORI'
+                      ? "< Nama Kategori >"
+                      : activeTab === 'SATUAN'
+                      ? "< Nama UOM >"
+                      : "< Nama Barang >"
+                  }
+                  value={searchKet}
+                  onChange={(e) => { setSearchKet(e.target.value); setCurrentPage(1); }}
+                  className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
+                />
                 {activeTab === 'BARANG' && (
                   <input 
                     type="text" 
@@ -512,22 +534,13 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
                     className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
                   />
                 )}
-                {activeTab === 'CUSTOMER' && (
-                  <input 
-                    type="text" 
-                    placeholder="< Nama Customer >"
-                    value={searchKet}
-                    onChange={(e) => { setSearchKet(e.target.value); setCurrentPage(1); }}
-                    className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
-                  />
-                )}
               </div>
 
               {activeTab === 'BARANG' && (
                 <>
                   {/* Tipe Filter */}
                   <div className="flex flex-col gap-2">
-                    <label className="font-semibold text-slate-800">Tipe :</label>
+                    <label className="font-semibold text-slate-800">Tipe Barang :</label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={typeFilters['INVENTORY']} onChange={(e) => setTypeFilters({...typeFilters, INVENTORY: e.target.checked})} className="rounded text-blue-600" />
                       Stok Disimpan (Inventory)
@@ -703,7 +716,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Satuan *</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">UOM *</label>
                   <select required className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 text-sm"
                     value={editItemData.unit} onChange={e => setEditItemData({...editItemData, unit: e.target.value})}>
                     {units.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
@@ -781,7 +794,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
       {showUnitForm && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-sm shadow-xl p-5">
-            <h3 className="font-bold text-slate-800 mb-4">Entri Satuan Baru</h3>
+            <h3 className="font-bold text-slate-800 mb-4">Entri UOM Baru</h3>
             <form onSubmit={(e) => {
               e.preventDefault();
               const val = (e.currentTarget.elements.namedItem('unitName') as HTMLInputElement).value;
@@ -802,7 +815,7 @@ export const MasterItemView: React.FC<MasterItemViewProps> = ({ onClose }) => {
       {editUnitData && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-sm shadow-xl p-5">
-            <h3 className="font-bold text-slate-800 mb-4">Ubah Satuan</h3>
+            <h3 className="font-bold text-slate-800 mb-4">Ubah UOM</h3>
             <form onSubmit={(e) => {
               e.preventDefault();
               updateUnit(editUnitData.id, editUnitData.name);

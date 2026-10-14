@@ -20,6 +20,7 @@ export interface InventoryItem {
   minStock: number;
   unit: string;
   customerName?: string;
+  itemGroup?: string;
 }
 
 export interface ItemCategory {
@@ -40,6 +41,16 @@ export interface Customer {
   phone: string;
 }
 
+export interface Vendor {
+  id: string;
+  name: string;
+}
+
+export interface ItemGroup {
+  id: string;
+  name: string;
+}
+
 export interface StockMovement {
   id: string;
   date: string;
@@ -49,6 +60,13 @@ export interface StockMovement {
   quantity: number;
   reference: string;
   notes?: string;
+  part_number?: string;
+  item_group?: string;
+  po_number?: string;
+  vendor?: string;
+  price_each?: number;
+  tax_type?: string;
+  price_total?: number;
 }
 
 interface InventorySnapshot {
@@ -56,6 +74,8 @@ interface InventorySnapshot {
   categories: ItemCategory[];
   units: ItemUnit[];
   customers: Customer[];
+  vendors: Vendor[];
+  itemGroups: ItemGroup[];
   movements: StockMovement[];
 }
 
@@ -65,6 +85,8 @@ interface InventoryContextType {
   units: ItemUnit[];
   movements: StockMovement[];
   customers: Customer[];
+  vendors: Vendor[];
+  itemGroups: ItemGroup[];
   isLoading: boolean;
   refresh: () => Promise<void>;
 
@@ -73,18 +95,20 @@ interface InventoryContextType {
     quantity: number,
     reference: string,
     date: string,
-  ) => void;
+    extraData?: Partial<StockMovement>
+  ) => Promise<StockMovement>;
   receiveStock: (
     itemId: string,
     quantity: number,
     reference: string,
     date: string,
-  ) => void;
+    extraData?: Partial<StockMovement>
+  ) => Promise<StockMovement>;
   updateMovement: (
     movId: string,
-    data: { itemId: string; quantity: number; date: string },
-  ) => void;
-  deleteMovement: (movId: string) => void;
+    data: { itemId: string; quantity: number; date: string } & Partial<StockMovement>,
+  ) => Promise<StockMovement>;
+  deleteMovement: (movId: string) => Promise<void>;
 
   addItem: (item: Omit<InventoryItem, "id">) => void;
   updateItem: (id: string, data: Partial<Omit<InventoryItem, "id">>) => void;
@@ -101,6 +125,14 @@ interface InventoryContextType {
   addCustomer: (customer: Omit<Customer, "id">) => void;
   updateCustomer: (id: string, data: Partial<Omit<Customer, "id">>) => void;
   deleteCustomer: (id: string) => void;
+
+  addVendor: (name: string) => void;
+  updateVendor: (id: string, name: string) => void;
+  deleteVendor: (id: string) => void;
+
+  addItemGroup: (name: string) => void;
+  updateItemGroup: (id: string, name: string) => void;
+  deleteItemGroup: (id: string) => void;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(
@@ -114,6 +146,8 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
   const [categories, setCategories] = useState<ItemCategory[]>([]);
   const [units, setUnits] = useState<ItemUnit[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [itemGroups, setItemGroups] = useState<ItemGroup[]>([]);
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -121,7 +155,9 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
     setItems(data.items);
     setCategories(data.categories);
     setUnits(data.units);
-    setCustomers(data.customers);
+    setCustomers(data.customers || []);
+    setVendors(data.vendors || []);
+    setItemGroups(data.itemGroups || []);
     setMovements(data.movements);
   };
 
@@ -138,66 +174,71 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
     void fetchData();
   }, [refresh]);
 
-  const issueStock = (
+  const issueStock = async (
     itemId: string,
     quantity: number,
     reference: string,
     date: string,
-  ) => {
-    void (async () => {
-      const result = await api<{
-        movement: StockMovement;
-        item: InventoryItem;
-      }>("/inventory/movements/out", {
-        method: "POST",
-        body: JSON.stringify({ itemId, quantity, reference, date }),
-      });
-      setItems((prev) =>
-        prev.map((item) => (item.id === result.item.id ? result.item : item)),
-      );
-      setMovements((prev) => [result.movement, ...prev]);
-    })();
+    extraData?: Partial<StockMovement>
+  ): Promise<StockMovement> => {
+    const result = await api<{
+      movement: StockMovement;
+      item: InventoryItem;
+    }>("/inventory/movements/out", {
+      method: "POST",
+      body: JSON.stringify({ itemId, quantity, reference, date, ...extraData }),
+    });
+    setItems((prev) =>
+      prev.map((item) => (item.id === result.item.id ? result.item : item)),
+    );
+    setMovements((prev) => [result.movement, ...prev]);
+    return result.movement;
   };
 
-  const receiveStock = (
+  const receiveStock = async (
     itemId: string,
     quantity: number,
     reference: string,
     date: string,
-  ) => {
-    void (async () => {
-      const result = await api<{
-        movement: StockMovement;
-        item: InventoryItem;
-      }>("/inventory/movements/in", {
-        method: "POST",
-        body: JSON.stringify({ itemId, quantity, reference, date }),
-      });
-      setItems((prev) =>
-        prev.map((item) => (item.id === result.item.id ? result.item : item)),
-      );
-      setMovements((prev) => [result.movement, ...prev]);
-    })();
+    extraData?: Partial<StockMovement>
+  ): Promise<StockMovement> => {
+    const result = await api<{
+      movement: StockMovement;
+      item: InventoryItem;
+    }>("/inventory/movements/in", {
+      method: "POST",
+      body: JSON.stringify({ itemId, quantity, reference, date, ...extraData }),
+    });
+    setItems((prev) =>
+      prev.map((item) => (item.id === result.item.id ? result.item : item)),
+    );
+    setMovements((prev) => [result.movement, ...prev]);
+    return result.movement;
   };
 
-  const updateMovement = (
+  const updateMovement = async (
     movId: string,
-    data: { itemId: string; quantity: number; date: string },
-  ) => {
-    void (async () => {
-      await api(`/inventory/movements/${movId}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      });
-      await refresh();
-    })();
+    data: { itemId: string; quantity: number; date: string } & Partial<StockMovement>,
+  ): Promise<StockMovement> => {
+    const result = await api<{
+      movement: StockMovement;
+      item: InventoryItem;
+    }>(`/inventory/movements/${movId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    setItems((prev) =>
+      prev.map((item) => (item.id === result.item.id ? result.item : item)),
+    );
+    setMovements((prev) =>
+      prev.map((m) => (m.id === movId ? result.movement : m)),
+    );
+    return result.movement;
   };
 
-  const deleteMovement = (movId: string) => {
-    void (async () => {
-      await api(`/inventory/movements/${movId}`, { method: "DELETE" });
-      await refresh();
-    })();
+  const deleteMovement = async (movId: string): Promise<void> => {
+    await api(`/inventory/movements/${movId}`, { method: "DELETE" });
+    await refresh();
   };
 
   const addItem = (itemData: Omit<InventoryItem, "id">) => {
@@ -309,6 +350,60 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
     })();
   };
 
+  const addVendor = (name: string) => {
+    void (async () => {
+      const created = await api<Vendor>("/inventory/vendors", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
+      setVendors((prev) => [...prev, created]);
+    })();
+  };
+
+  const updateVendor = (id: string, name: string) => {
+    void (async () => {
+      const saved = await api<Vendor>(`/inventory/vendors/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ name }),
+      });
+      setVendors((prev) => prev.map((v) => (v.id === id ? saved : v)));
+    })();
+  };
+
+  const deleteVendor = (id: string) => {
+    void (async () => {
+      await api(`/inventory/vendors/${id}`, { method: "DELETE" });
+      setVendors((prev) => prev.filter((v) => v.id !== id));
+    })();
+  };
+
+  const addItemGroup = (name: string) => {
+    void (async () => {
+      const created = await api<ItemGroup>("/inventory/item-groups", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
+      setItemGroups((prev) => [...prev, created]);
+    })();
+  };
+
+  const updateItemGroup = (id: string, name: string) => {
+    void (async () => {
+      const saved = await api<ItemGroup>(`/inventory/item-groups/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ name }),
+      });
+      setItemGroups((prev) => prev.map((g) => (g.id === id ? saved : g)));
+    })();
+  };
+
+  const deleteItemGroup = (id: string) => {
+    void (async () => {
+      await api(`/inventory/item-groups/${id}`, { method: "DELETE" });
+      setItemGroups((prev) => prev.filter((g) => g.id !== id));
+    })();
+  };
+
   return (
     <InventoryContext.Provider
       value={{
@@ -317,6 +412,8 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
         units,
         movements,
         customers,
+        vendors,
+        itemGroups,
         isLoading,
         refresh,
         issueStock,
@@ -335,6 +432,12 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
         addCustomer,
         updateCustomer,
         deleteCustomer,
+        addVendor,
+        updateVendor,
+        deleteVendor,
+        addItemGroup,
+        updateItemGroup,
+        deleteItemGroup,
       }}
     >
       {children}

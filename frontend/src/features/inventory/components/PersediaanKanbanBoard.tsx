@@ -345,7 +345,7 @@ export const PersediaanKanbanBoard: React.FC<PersediaanKanbanBoardProps> = ({ on
                         <tr 
                           key={mov.id} 
                           className="hover:bg-emerald-50/50 transition-colors cursor-pointer"
-                          onClick={() => { if (onOpenTab) onOpenTab('Barang Masuk'); }}
+                          onClick={() => { if (onOpenTab) onOpenTab('Mutasi Stok'); }}
                         >
                           <td className="px-4 py-2.5 text-center text-slate-400 text-xs">{idx + 1}</td>
                           <td className="px-4 py-2.5 font-mono text-blue-600">{mov.id}</td>
@@ -396,7 +396,7 @@ export const PersediaanKanbanBoard: React.FC<PersediaanKanbanBoardProps> = ({ on
                         <tr 
                           key={mov.id} 
                           className="hover:bg-rose-50/50 transition-colors cursor-pointer"
-                          onClick={() => { if (onOpenTab) onOpenTab('Barang Keluar'); }}
+                          onClick={() => { if (onOpenTab) onOpenTab('Mutasi Stok'); }}
                         >
                           <td className="px-4 py-2.5 text-center text-slate-400 text-xs">{idx + 1}</td>
                           <td className="px-4 py-2.5 font-mono text-blue-600">{mov.id}</td>
@@ -501,29 +501,15 @@ export const PersediaanKanbanBoard: React.FC<PersediaanKanbanBoardProps> = ({ on
 
         <button 
           onClick={() => {
-            if (onOpenTab) onOpenTab('Barang Masuk');
+            if (onOpenTab) onOpenTab('Mutasi Stok');
           }}
           className="flex flex-col items-center justify-center gap-2 p-3 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:shadow-md transition-all group"
         >
           <div className="bg-emerald-50 p-2.5 rounded-xl text-emerald-600 group-hover:bg-emerald-100 transition-colors group-hover:-translate-y-1 transform duration-200">
-            <PackagePlus className="w-5 h-5" />
+            <ArrowRightLeft className="w-5 h-5" />
           </div>
           <div className="text-center w-full">
-            <span className="block font-bold text-slate-700 group-hover:text-emerald-600 text-[11px] lg:text-xs truncate">Barang Masuk</span>
-          </div>
-        </button>
-
-        <button 
-          onClick={() => {
-            if (onOpenTab) onOpenTab('Barang Keluar');
-          }}
-          className="flex flex-col items-center justify-center gap-2 p-3 bg-white border border-slate-200 rounded-xl hover:border-orange-400 hover:shadow-md transition-all group"
-        >
-          <div className="bg-orange-50 p-2.5 rounded-xl text-orange-600 group-hover:bg-orange-100 transition-colors group-hover:-translate-y-1 transform duration-200">
-            <PackageMinus className="w-5 h-5" />
-          </div>
-          <div className="text-center w-full">
-            <span className="block font-bold text-slate-700 group-hover:text-orange-600 text-[11px] lg:text-xs truncate">Barang Keluar</span>
+            <span className="block font-bold text-slate-700 group-hover:text-emerald-600 text-[11px] lg:text-xs truncate">Mutasi Stok</span>
           </div>
         </button>
 
@@ -691,7 +677,7 @@ export const PersediaanKanbanBoard: React.FC<PersediaanKanbanBoardProps> = ({ on
                 <tr 
                   key={mov.id} 
                   className="hover:bg-slate-50 transition-colors cursor-pointer"
-                  onClick={() => { if (onOpenTab) onOpenTab(mov.type === 'IN' ? 'Barang Masuk' : 'Barang Keluar'); }}
+                  onClick={() => { if (onOpenTab) onOpenTab('Mutasi Stok'); }}
                 >
                   <td className="px-4 py-3">{new Date(mov.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                   <td className="px-4 py-3 font-mono text-blue-600">{mov.id}</td>

@@ -10,5 +10,5 @@ class InventoryItem extends Model
 
     public $incrementing = false;
 
-    protected $fillable = ['id', 'sku', 'name', 'category', 'type', 'currentStock', 'minStock', 'unit', 'customerName'];
+    protected $fillable = ['id', 'sku', 'name', 'category', 'type', 'currentStock', 'minStock', 'unit', 'customerName', 'itemGroup'];
 }

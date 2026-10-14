@@ -46,4 +46,69 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/inventory/movements/out', [InventoryController::class, 'storeMovementOut']);
     Route::put('/inventory/movements/{id}', [InventoryController::class, 'updateMovement']);
     Route::delete('/inventory/movements/{id}', [InventoryController::class, 'destroyMovement']);
+
+    // System Maintenance & Production Migration (Restricted to ADMINISTRATOR)
+    Route::post('/system/migrate', function (\Illuminate\Http\Request $request) {
+        if ($request->user()->role !== 'ADMINISTRATOR') {
+            return response()->json(['error' => 'Forbidden. Administrator access required.'], 403);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
+
+            // Seed initial Vendors if empty
+            if (\App\Models\Vendor::count() === 0) {
+                $defaultVendors = [
+                    'PT. United Tractors',
+                    'PT. Trakindo Utama',
+                    'PT. Hexindo Adiperkasa',
+                    'PT. Kobexindo Tractors',
+                    'CV. Sumber Teknik',
+                    'CV. Maju Bersama',
+                    'PT. RNF Global Vendor'
+                ];
+                foreach ($defaultVendors as $idx => $name) {
+                    \App\Models\Vendor::create([
+                        'id' => 'VEN-' . str_pad($idx + 1, 3, '0', STR_PAD_LEFT),
+                        'name' => $name,
+                    ]);
+                }
+            }
+
+            // Seed initial Item Groups if empty
+            if (\App\Models\ItemGroup::count() === 0) {
+                $defaultGroups = [
+                    'SPAREPART',
+                    'CONSUMABLE',
+                    'TOOLS & EQUIPMENT',
+                    'FABRICATION MATERIAL',
+                    'GENERAL'
+                ];
+                foreach ($defaultGroups as $idx => $name) {
+                    \App\Models\ItemGroup::create([
+                        'id' => 'GRP-' . str_pad($idx + 1, 3, '0', STR_PAD_LEFT),
+                        'name' => $name,
+                    ]);
+                }
+            }
+
+            \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+            $optimizeOutput = \Illuminate\Support\Facades\Artisan::output();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Database migration, provisioning, and cache clear executed successfully.',
+                'migrate_output' => $migrateOutput,
+                'optimize_output' => $optimizeOutput,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ], 500);
+        }
+    });
 });
+

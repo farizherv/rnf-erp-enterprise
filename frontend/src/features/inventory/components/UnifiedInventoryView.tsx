@@ -7,9 +7,10 @@ import { useInventory, type StockMovement } from '../context/InventoryContext';
 
 interface UnifiedInventoryViewProps {
   onClose?: () => void;
+  initialSearchJobReg?: string;
 }
 
-export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onClose }) => {
+export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onClose, initialSearchJobReg }) => {
   const { 
     items, 
     movements, 
@@ -34,11 +35,17 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
   // Filters
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [searchJobReg, setSearchJobReg] = useState('');
+  const [searchJobReg, setSearchJobReg] = useState(initialSearchJobReg || '');
   const [searchItemName, setSearchItemName] = useState('');
   const [searchPoNo, setSearchPoNo] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
   const [searchVendor, setSearchVendor] = useState('');
+
+  React.useEffect(() => {
+    if (initialSearchJobReg !== undefined) {
+      setSearchJobReg(initialSearchJobReg);
+    }
+  }, [initialSearchJobReg]);
   const [typeFilters, setTypeFilters] = useState<{ [key: string]: boolean }>({
     'IN': true,
     'OUT': true

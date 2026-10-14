@@ -44,6 +44,7 @@ export const DashboardPage: React.FC = () => {
     { id: 'Buku Besar', label: 'Buku Besar' }
   ]);
   const [activeTabId, setActiveTabId] = useState('Buku Besar');
+  const [mutasiInitialJobReg, setMutasiInitialJobReg] = useState<string>('');
 
   // Scrolling Ref
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -267,7 +268,10 @@ export const DashboardPage: React.FC = () => {
                 )}
                 {tab.id === 'Mutasi Stok' && (
                   <div className="p-0 h-full bg-slate-50 flex flex-col overflow-hidden">
-                    <UnifiedInventoryView onClose={() => closeTab(null, tab.id)} />
+                    <UnifiedInventoryView 
+                      onClose={() => closeTab(null, tab.id)} 
+                      initialSearchJobReg={mutasiInitialJobReg}
+                    />
                   </div>
                 )}
                 {(tab.id === 'Laporan Barang Masuk' || tab.id === 'Laporan Barang Keluar') && (
@@ -277,7 +281,13 @@ export const DashboardPage: React.FC = () => {
                 )}
                 {tab.id === 'Laporan Stok' && (
                   <div className="p-0 h-full bg-slate-50 flex flex-col overflow-hidden">
-                    <StockReportView onClose={() => closeTab(null, tab.id)} />
+                    <StockReportView 
+                      onClose={() => closeTab(null, tab.id)} 
+                      onNavigateToMutasi={(jobReg) => {
+                        setMutasiInitialJobReg(jobReg);
+                        handleMenuClick('Mutasi Stok');
+                      }}
+                    />
                   </div>
                 )}
                 {tab.id === 'Chart of Account' && (

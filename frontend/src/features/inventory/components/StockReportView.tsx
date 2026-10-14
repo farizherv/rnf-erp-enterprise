@@ -13,18 +13,20 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { useInventory } from '../context/InventoryContext';
+import { useInventory, type InventoryItem } from '../context/InventoryContext';
+import { ItemStockCardModal } from './ItemStockCardModal';
 
 interface StockReportViewProps {
   onClose?: () => void;
   onSelectJobReg?: (item: any) => void;
+  onNavigateToMutasi?: (jobReg: string) => void;
 }
 
 type SortField = 'sku' | 'name' | 'category' | 'minStock' | 'currentStock' | 'status';
 type SortOrder = 'asc' | 'desc';
 type StatusFilter = 'ALL' | 'CRITICAL' | 'NORMAL';
 
-export const StockReportView: React.FC<StockReportViewProps> = ({ onClose, onSelectJobReg }) => {
+export const StockReportView: React.FC<StockReportViewProps> = ({ onClose, onSelectJobReg, onNavigateToMutasi }) => {
   const { items, categories, refresh } = useInventory();
 
   // ── View State ──
@@ -33,6 +35,10 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose, onSel
   const [pageSize, setPageSize] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
+  // ── Stock Card Modal State ──
+  const [stockCardItem, setStockCardItem] = useState<InventoryItem | null>(null);
+  const [isStockCardOpen, setIsStockCardOpen] = useState(false);
 
   // ── Sorting State ──
   const [sortField, setSortField] = useState<SortField>('currentStock');
@@ -578,10 +584,12 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose, onSel
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedItemId(item.id);
+                              setStockCardItem(item);
+                              setIsStockCardOpen(true);
                               if (onSelectJobReg) onSelectJobReg(item);
                             }}
                             className="font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors inline-block"
-                            title={`Lihat rincian ${item.sku}`}
+                            title={`Klik untuk membuka Kartu Stok & Riwayat Mutasi ${item.sku}`}
                           >
                             {item.sku}
                           </span>
@@ -676,6 +684,17 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose, onSel
         </div>
 
       </div>
+
+      {/* 5. Enterprise Stock Card & Audit Ledger Modal */}
+      <ItemStockCardModal
+        item={stockCardItem}
+        isOpen={isStockCardOpen}
+        onClose={() => {
+          setIsStockCardOpen(false);
+          setStockCardItem(null);
+        }}
+        onNavigateToMutasi={onNavigateToMutasi}
+      />
 
     </div>
   );

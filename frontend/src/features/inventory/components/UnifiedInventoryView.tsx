@@ -34,7 +34,8 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
   // Filters
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [searchJobRegName, setSearchJobRegName] = useState('');
+  const [searchJobReg, setSearchJobReg] = useState('');
+  const [searchItemName, setSearchItemName] = useState('');
   const [searchPoNo, setSearchPoNo] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
   const [searchVendor, setSearchVendor] = useState('');
@@ -49,13 +50,20 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
       const itemData = items.find(i => i.id === m.itemId);
       const category = m.item_group || itemData?.itemGroup || itemData?.category || '';
 
-      // Text searches
-      if (searchJobRegName) {
-        const query = searchJobRegName.toLowerCase();
-        const matchesName = (m.itemName || '').toLowerCase().includes(query);
+      // JOB-REG filter
+      if (searchJobReg) {
+        const query = searchJobReg.toLowerCase();
         const matchesJobReg = (m.reference && m.reference.toLowerCase().includes(query)) || 
                               (itemData?.sku && itemData.sku.toLowerCase().includes(query));
-        if (!matchesName && !matchesJobReg) return false;
+        if (!matchesJobReg) return false;
+      }
+
+      // Nama Barang filter
+      if (searchItemName) {
+        const query = searchItemName.toLowerCase();
+        const matchesName = (m.itemName && m.itemName.toLowerCase().includes(query)) ||
+                            (itemData?.name && itemData.name.toLowerCase().includes(query));
+        if (!matchesName) return false;
       }
       
       if (searchPoNo && m.po_number && !m.po_number.toLowerCase().includes(searchPoNo.toLowerCase())) return false;
@@ -71,7 +79,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
       
       return true;
     });
-  }, [movements, items, startDate, endDate, searchJobRegName, searchPoNo, searchCategory, searchVendor, typeFilters]);
+  }, [movements, items, startDate, endDate, searchJobReg, searchItemName, searchPoNo, searchCategory, searchVendor, typeFilters]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
@@ -336,10 +344,11 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <label className="font-semibold text-slate-800">Cari:</label>
-                  {(searchJobRegName || searchPoNo || searchCategory || searchVendor || startDate || endDate) && (
+                  {(searchJobReg || searchItemName || searchPoNo || searchCategory || searchVendor || startDate || endDate) && (
                     <button
                       onClick={() => {
-                        setSearchJobRegName('');
+                        setSearchJobReg('');
+                        setSearchItemName('');
                         setSearchPoNo('');
                         setSearchCategory('');
                         setSearchVendor('');
@@ -355,9 +364,16 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
                 </div>
                 <input 
                   type="text" 
-                  placeholder="< JOB-REG / Barang >" 
-                  value={searchJobRegName}
-                  onChange={(e) => { setSearchJobRegName(e.target.value); setCurrentPage(1); }}
+                  placeholder="< JOB-REG >" 
+                  value={searchJobReg}
+                  onChange={(e) => { setSearchJobReg(e.target.value); setCurrentPage(1); }}
+                  className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
+                />
+                <input 
+                  type="text" 
+                  placeholder="< Nama Barang >" 
+                  value={searchItemName}
+                  onChange={(e) => { setSearchItemName(e.target.value); setCurrentPage(1); }}
                   className="w-full px-2 py-1.5 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 placeholder:text-slate-400"
                 />
                 <input 

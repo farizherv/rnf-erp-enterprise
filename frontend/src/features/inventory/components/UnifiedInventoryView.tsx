@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { 
   X, Copy, Edit, Trash2, Plus, RefreshCw, Printer, 
-  Filter, FileSpreadsheet, ChevronLeft, ChevronRight, Package, Save 
+  Filter, FileSpreadsheet, ChevronLeft, ChevronRight, Package, Save, ArrowLeftRight
 } from 'lucide-react';
 import { useInventory, type StockMovement } from '../context/InventoryContext';
 
@@ -16,6 +16,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
     movements, 
     categories, 
     vendors, 
+    customers,
     itemGroups, 
     issueStock, 
     receiveStock, 
@@ -161,6 +162,21 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
     }
   };
 
+  const handleNewExchange = () => {
+    const defaultItem = items[0];
+    setEditData({
+      id: '',
+      date: new Date().toISOString().split('T')[0],
+      itemId: defaultItem ? defaultItem.id : '',
+      itemName: defaultItem ? defaultItem.name : '',
+      type: 'EXCHANGE_OUT',
+      quantity: 1,
+      reference: defaultItem?.sku || '',
+      notes: '[EXCHANGE] Tukar Guling Unit'
+    } as any);
+    setShowForm(true);
+  };
+
   const handleExportCSV = useCallback(() => {
     if (filteredData.length === 0) {
       alert('Tidak ada data mutasi untuk diekspor.');
@@ -293,6 +309,14 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
         >
           <Plus className="w-4 h-4 text-emerald-600" />
           <span className="font-semibold text-xs">Baru</span>
+        </button>
+        <button 
+          onClick={handleNewExchange} 
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-colors"
+          title="Catat Transaksi Tukar Guling Unit Cepat"
+        >
+          <ArrowLeftRight className="w-3.5 h-3.5 text-blue-600" />
+          <span className="font-bold text-xs">+ Exchange</span>
         </button>
         <button 
           onClick={handleEdit} 
@@ -653,6 +677,7 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
           items={items}
           categories={categories}
           vendors={vendors}
+          customers={customers}
           itemGroups={itemGroups}
           issueStock={issueStock}
           receiveStock={receiveStock}
@@ -672,6 +697,7 @@ interface CreateMovementModalProps {
   items: any[];
   categories: any[];
   vendors: any[];
+  customers?: any[];
   itemGroups: any[];
   issueStock: (itemId: string, qty: number, ref: string, date: string, extra?: any) => Promise<any>;
   receiveStock: (itemId: string, qty: number, ref: string, date: string, extra?: any) => Promise<any>;
@@ -684,6 +710,7 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
   items, 
   categories, 
   vendors, 
+  customers = [],
   itemGroups, 
   issueStock, 
   receiveStock, 
@@ -733,6 +760,14 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
     items.forEach((it: any) => { if (it.category) set.add(it.category); });
     return Array.from(set);
   }, [categories, items]);
+
+  // Contact suggestions from vendors & customers
+  const contactSuggestions = useMemo(() => {
+    const set = new Set<string>();
+    vendors.forEach((v: any) => { if (v.name) set.add(v.name); });
+    customers.forEach((c: any) => { if (c.name) set.add(c.name); });
+    return Array.from(set);
+  }, [vendors, customers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -818,10 +853,22 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
           <div>
             <h2 className="text-lg font-bold text-slate-800">
-              {isEditing ? 'Ubah Data Mutasi Stok' : isDuplicate ? 'Salin Mutasi Stok' : 'Entri Data Mutasi Stok Baru'}
+              {isEditing 
+                ? 'Ubah Data Mutasi Stok' 
+                : isDuplicate 
+                  ? 'Salin Mutasi Stok' 
+                  : type === 'EXCHANGE_OUT' 
+                    ? 'Entri Mutasi Exchange OUT (Tukar Guling)'
+                    : type === 'EXCHANGE_IN'
+                      ? 'Entri Mutasi Exchange IN (Terima Core Rusak)'
+                      : 'Entri Data Mutasi Stok Baru'}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Lengkapi formulir mutasi stok di bawah ini.
+              {type === 'EXCHANGE_OUT' 
+                ? 'Pencatatan pengeluaran unit serviceable (siap pakai) ke customer.'
+                : type === 'EXCHANGE_IN'
+                  ? 'Pencatatan penerimaan unit unserviceable (core rusak) dari customer.'
+                  : 'Lengkapi formulir mutasi stok di bawah ini.'}
             </p>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors">
@@ -851,7 +898,7 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
-            <span>Finansial</span>
+            <span>Finansial / Rekanan</span>
             {Boolean(formData.vendor || formData.price_each || formData.notes) && (
               <span className="w-2 h-2 rounded-full bg-blue-600" title="Data Finansial Terisi" />
             )}
@@ -864,12 +911,37 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
           {/* ════════════ TAB 1: DATA MUTASI ════════════ */}
           {activeTab === 'MUTASI' && (
             <div className="flex flex-col gap-3.5 animate-in fade-in duration-150">
+              
+              {/* Informative Banner for Exchange */}
+              {type === 'EXCHANGE_OUT' && (
+                <div className="p-3 bg-blue-50/90 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 font-bold text-[11px] mt-0.5">
+                    ↗
+                  </div>
+                  <div>
+                    <span className="font-bold block text-blue-900">Alur Tukar Guling (Exchange Out):</span>
+                    Unit stok siap pakai (Serviceable) akan dikeluarkan ke customer. Pastikan mencatat nama customer penerima di tab Finansial/Rekanan.
+                  </div>
+                </div>
+              )}
+
+              {type === 'EXCHANGE_IN' && (
+                <div className="p-3 bg-amber-50/90 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center shrink-0 font-bold text-[11px] mt-0.5">
+                    ↙
+                  </div>
+                  <div>
+                    <span className="font-bold block text-amber-900">Alur Terima Core (Exchange In):</span>
+                    Unit rusak (Core) dari customer diterima masuk untuk disimpan di workshop sebelum dijadwalkan untuk proses overhaul.
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tipe Mutasi *</label>
                   <select
                     required
-                    disabled={isEditing}
                     value={type}
                     onChange={e => setType(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 text-sm bg-white font-medium"
@@ -947,10 +1019,12 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nomor PO (PO No)</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    {type.startsWith('EXCHANGE') ? 'No. PO / No. Job Order Exchange' : 'Nomor PO (PO No)'}
+                  </label>
                   <input 
-                    type="text"
-                    placeholder="Contoh: PO-2026-001"
+                    type="text" 
+                    placeholder={type.startsWith('EXCHANGE') ? "Contoh: WO-OSS-001 / PO Customer" : "Contoh: PO-2026-001"}
                     value={formData.po_number}
                     onChange={e => setFormData({ ...formData, po_number: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 text-sm font-mono"
@@ -959,7 +1033,7 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">Satuan (UOM)</label>
                   <input 
-                    type="text"
+                    type="text" 
                     readOnly
                     value={selectedItemData?.unit || '-'}
                     className="w-full px-3 py-2 border border-slate-200 bg-slate-100 text-slate-700 rounded-lg text-sm cursor-not-allowed select-none"
@@ -974,18 +1048,34 @@ const CreateMovementModal: React.FC<CreateMovementModalProps> = ({
             <div className="flex flex-col gap-3.5 animate-in fade-in duration-150">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Vendor</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    {type === 'EXCHANGE_OUT' 
+                      ? 'Customer / Penerima Exchange' 
+                      : type === 'EXCHANGE_IN' 
+                        ? 'Customer / Sumber Core' 
+                        : 'Vendor / Rekanan'}
+                  </label>
                   <input 
                     type="text"
-                    placeholder="Nama vendor..."
+                    list="contact-options"
+                    placeholder={type.startsWith('EXCHANGE') ? "Pilih atau ketik nama customer..." : "Nama vendor..."}
                     value={formData.vendor}
                     onChange={e => setFormData({ ...formData, vendor: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 text-sm"
                   />
+                  <datalist id="contact-options">
+                    {contactSuggestions.map((c, idx) => (
+                      <option key={idx} value={c} />
+                    ))}
+                  </datalist>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                    Jumlah {type === 'IN' ? 'Masuk' : 'Keluar'} * {selectedItemData?.unit ? `(${selectedItemData.unit})` : ''}
+                    {type === 'EXCHANGE_OUT' 
+                      ? 'Jumlah Unit Tukar Keluar *' 
+                      : type === 'EXCHANGE_IN' 
+                        ? 'Jumlah Unit Core Masuk *' 
+                        : `Jumlah ${type === 'IN' ? 'Masuk' : 'Keluar'} *`} {selectedItemData?.unit ? `(${selectedItemData.unit})` : ''}
                   </label>
                   <input 
                     required

@@ -17,13 +17,14 @@ import { useInventory } from '../context/InventoryContext';
 
 interface StockReportViewProps {
   onClose?: () => void;
+  onSelectJobReg?: (item: any) => void;
 }
 
 type SortField = 'sku' | 'name' | 'category' | 'minStock' | 'currentStock' | 'status';
 type SortOrder = 'asc' | 'desc';
 type StatusFilter = 'ALL' | 'CRITICAL' | 'NORMAL';
 
-export const StockReportView: React.FC<StockReportViewProps> = ({ onClose }) => {
+export const StockReportView: React.FC<StockReportViewProps> = ({ onClose, onSelectJobReg }) => {
   const { items, categories, refresh } = useInventory();
 
   // ── View State ──
@@ -164,7 +165,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose }) => 
       tableRows += `
         <tr>
           <td style="text-align:center;">${idx + 1}</td>
-          <td style="font-family:monospace;font-weight:600;">${item.sku}</td>
+          <td style="font-weight:600;color:#2563eb;">${item.sku}</td>
           <td style="font-weight:500;">${item.name}</td>
           <td>${item.category || '-'}</td>
           <td style="text-align:right;">${item.minStock.toLocaleString('id-ID')} ${item.unit || 'UNIT'}</td>
@@ -418,7 +419,7 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose }) => 
                   placeholder="< JOB-REG >" 
                   value={searchJobReg}
                   onChange={(e) => { setSearchJobReg(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 font-mono text-xs placeholder:text-slate-400"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 text-xs placeholder:text-slate-400"
                 />
               </div>
 
@@ -572,8 +573,18 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose }) => 
                       >
                         <td className="px-3.5 py-2 text-center text-slate-400 font-mono border-r border-slate-100">{globalIdx}</td>
                         
-                        <td className="px-3.5 py-2 font-mono font-semibold text-blue-600 border-r border-slate-100">
-                          {item.sku}
+                        <td className="px-3.5 py-2 border-r border-slate-100">
+                          <span 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedItemId(item.id);
+                              if (onSelectJobReg) onSelectJobReg(item);
+                            }}
+                            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors inline-block"
+                            title={`Lihat rincian ${item.sku}`}
+                          >
+                            {item.sku}
+                          </span>
                         </td>
 
                         <td className="px-3.5 py-2 font-semibold text-slate-800 border-r border-slate-100">

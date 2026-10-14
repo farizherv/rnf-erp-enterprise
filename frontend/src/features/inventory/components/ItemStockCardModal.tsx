@@ -40,12 +40,11 @@ export const ItemStockCardModal: React.FC<ItemStockCardModalProps> = ({
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  if (!isOpen || !item) return null;
-
-  const isCritical = item.currentStock < item.minStock;
+  const isCritical = item ? item.currentStock < item.minStock : false;
 
   // ── 1. Movements for this Item ──
   const itemMovements = useMemo(() => {
+    if (!item) return [];
     return movements.filter(m => m.itemId === item.id || m.itemName === item.name);
   }, [item, movements]);
 
@@ -156,6 +155,7 @@ export const ItemStockCardModal: React.FC<ItemStockCardModalProps> = ({
 
   // ── Print Stock Card Engine ──
   const handlePrint = useCallback(() => {
+    if (!item) return;
     const formattedDate = new Date().toLocaleDateString('id-ID', {
       day: '2-digit',
       month: 'long',
@@ -306,7 +306,7 @@ export const ItemStockCardModal: React.FC<ItemStockCardModalProps> = ({
 
   // ── Enterprise CSV Export ──
   const handleExportCSV = useCallback(() => {
-    if (displayedMovements.length === 0) {
+    if (!item || displayedMovements.length === 0) {
       alert('Tidak ada data mutasi untuk diekspor.');
       return;
     }
@@ -359,6 +359,9 @@ export const ItemStockCardModal: React.FC<ItemStockCardModalProps> = ({
     link.click();
     URL.revokeObjectURL(url);
   }, [displayedMovements, item]);
+
+  // Rule of Hooks: Place conditional return right before JSX render
+  if (!isOpen || !item) return null;
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 md:p-6 animate-in fade-in duration-200">

@@ -686,15 +686,17 @@ export const StockReportView: React.FC<StockReportViewProps> = ({ onClose, onSel
       </div>
 
       {/* 5. Enterprise Stock Card & Audit Ledger Modal */}
-      <ItemStockCardModal
-        item={stockCardItem}
-        isOpen={isStockCardOpen}
-        onClose={() => {
-          setIsStockCardOpen(false);
-          setStockCardItem(null);
-        }}
-        onNavigateToMutasi={onNavigateToMutasi}
-      />
+      {isStockCardOpen && stockCardItem && (
+        <ItemStockCardModal
+          item={stockCardItem}
+          isOpen={isStockCardOpen}
+          onClose={() => {
+            setIsStockCardOpen(false);
+            setStockCardItem(null);
+          }}
+          onNavigateToMutasi={onNavigateToMutasi}
+        />
+      )}
 
     </div>
   );

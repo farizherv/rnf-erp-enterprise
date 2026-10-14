@@ -7,14 +7,12 @@ import {
   ArrowDownLeft, 
   ArrowUpRight, 
   Package, 
-  ExternalLink, 
   Layers, 
   Info, 
   RotateCcw,
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft,
   Calendar
 } from 'lucide-react';
 import { useInventory, type InventoryItem } from '../context/InventoryContext';
@@ -287,7 +285,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
                 <th style="width:50px;text-align:center;">Tipe</th>
                 <th style="width:55px;text-align:right;">Masuk</th>
                 <th style="width:55px;text-align:right;">Keluar</th>
-                <th style="width:60px;text-align:right;">Saldo Stok</th>
+                <th style="width:65px;text-align:right;">Saldo Kumulatif</th>
                 <th style="width:70px;">PO No</th>
                 <th style="width:90px;">Vendor / Rekanan</th>
                 <th style="width:75px;text-align:right;">Harga Satuan</th>
@@ -342,7 +340,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
       'No Bukti / Referensi',
       'Qty Masuk',
       'Qty Keluar',
-      'Saldo Stok Berjalan',
+      'Saldo Kumulatif',
       'Satuan',
       'PO No',
       'Vendor',
@@ -406,30 +404,23 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
       {/* ── 1. Page Header (Spacious, Clean, High-Readability) ── */}
       <div className="px-6 py-3.5 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 shadow-xs">
         <div className="flex items-center gap-3.5">
-          {onClose && (
-            <button 
-              onClick={onClose}
-              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 shadow-2xs"
-              title="Kembali ke Laporan Stok"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-          )}
-
           <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 shadow-sm">
             <Package className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-lg font-bold text-slate-800 leading-none">Kartu Stok &amp; Riwayat Mutasi Barang</h2>
-              <span className="text-base font-extrabold text-blue-600 font-mono tracking-wide">
-                {activeItem.sku}
-              </span>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                • {activeItem.category || '-'}
-              </span>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-bold text-slate-900 leading-none">Kartu Stok &amp; Riwayat Mutasi Barang</h2>
+              <div className="h-4 w-px bg-slate-300" />
+              <div className="flex items-center gap-2">
+                <span className="text-base font-extrabold text-blue-600 font-mono tracking-wide uppercase">
+                  {activeItem.sku}
+                </span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  • {activeItem.category || '-'}
+                </span>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 mt-1 font-medium">
               Audit Histori Lengkap Keluar &amp; Masuk
             </p>
           </div>
@@ -437,17 +428,6 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
 
         {/* Header Action Buttons */}
         <div className="flex items-center gap-2">
-          {onNavigateToMutasi && (
-            <button
-              onClick={() => onNavigateToMutasi(activeItem.sku)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors shadow-2xs"
-              title="Buka dan filter barang ini di menu Mutasi Stok"
-            >
-              <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
-              <span>Buka di Mutasi Stok</span>
-            </button>
-          )}
-
           <button
             onClick={handlePrint}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
@@ -690,14 +670,6 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
 
               <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-[11px] text-slate-400">ID Sistem: <code className="font-mono text-slate-600">{activeItem.id}</code></span>
-                {onNavigateToMutasi && (
-                  <button
-                    onClick={() => onNavigateToMutasi(activeItem.sku)}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                  >
-                    Buka Rincian di Mutasi Stok <ExternalLink className="w-3 h-3" />
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -713,7 +685,7 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
                 <th className="px-3.5 py-3 text-right w-24 border-r border-slate-200">Masuk</th>
                 <th className="px-3.5 py-3 text-right w-24 border-r border-slate-200">Keluar</th>
                 <th className="px-4 py-3 text-right w-32 border-r border-slate-200 bg-blue-50/60">
-                  <span className="text-blue-900 font-extrabold">Saldo Berjalan</span>
+                  <span className="text-blue-900 font-extrabold">Saldo Kumulatif</span>
                 </th>
                 <th className="px-3.5 py-3 border-r border-slate-200">PO No</th>
                 <th className="px-3.5 py-3 border-r border-slate-200">Vendor / Rekanan</th>
@@ -820,10 +792,6 @@ export const StockCardReportView: React.FC<StockCardReportViewProps> = ({
           <div className="w-px h-3 bg-slate-300" />
           <span>
             Menampilkan {total === 0 ? 0 : (currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, total)} dari {total} Baris
-          </span>
-          <div className="w-px h-3 bg-slate-300" />
-          <span>
-            Saldo Akhir: <strong className="text-blue-700 font-bold">{activeItem.currentStock.toLocaleString('id-ID')} {activeItem.unit || 'UNIT'}</strong>
           </span>
         </div>
 

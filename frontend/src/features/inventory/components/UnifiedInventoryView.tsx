@@ -52,23 +52,39 @@ export const UnifiedInventoryView: React.FC<UnifiedInventoryViewProps> = ({ onCl
 
       // JOB-REG filter
       if (searchJobReg) {
-        const query = searchJobReg.toLowerCase();
-        const matchesJobReg = (m.reference && m.reference.toLowerCase().includes(query)) || 
-                              (itemData?.sku && itemData.sku.toLowerCase().includes(query));
-        if (!matchesJobReg) return false;
+        const query = searchJobReg.trim().toLowerCase();
+        const ref = (m.reference || '').toLowerCase();
+        const sku = (itemData?.sku || '').toLowerCase();
+        if (!ref.includes(query) && !sku.includes(query)) return false;
       }
 
       // Nama Barang filter
       if (searchItemName) {
-        const query = searchItemName.toLowerCase();
-        const matchesName = (m.itemName && m.itemName.toLowerCase().includes(query)) ||
-                            (itemData?.name && itemData.name.toLowerCase().includes(query));
-        if (!matchesName) return false;
+        const query = searchItemName.trim().toLowerCase();
+        const name = (m.itemName || itemData?.name || '').toLowerCase();
+        if (!name.includes(query)) return false;
       }
       
-      if (searchPoNo && m.po_number && !m.po_number.toLowerCase().includes(searchPoNo.toLowerCase())) return false;
-      if (searchCategory && !category.toLowerCase().includes(searchCategory.toLowerCase())) return false;
-      if (searchVendor && m.vendor && !m.vendor.toLowerCase().includes(searchVendor.toLowerCase())) return false;
+      // PO Number filter
+      if (searchPoNo) {
+        const query = searchPoNo.trim().toLowerCase();
+        const po = (m.po_number || (m as any).poNumber || (m as any).po_no || '').toLowerCase();
+        if (!po.includes(query)) return false;
+      }
+
+      // Kategori filter
+      if (searchCategory) {
+        const query = searchCategory.trim().toLowerCase();
+        const cat = (category || '').toLowerCase();
+        if (!cat.includes(query)) return false;
+      }
+
+      // Vendor filter
+      if (searchVendor) {
+        const query = searchVendor.trim().toLowerCase();
+        const v = (m.vendor || (m as any).vendorName || '').toLowerCase();
+        if (!v.includes(query)) return false;
+      }
       
       // Date Range Filter
       if (startDate && m.date < startDate) return false;
